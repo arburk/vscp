@@ -33,7 +33,7 @@ class WelcomeScreen : Fragment() {
     super.onViewCreated(view, savedInstanceState)
 
     binding.pokerTimer.setOnClickListener {
-      findNavController().navigate(R.id.action_WelcomeScreen_to_SecondFragment)
+      findNavController().navigate(R.id.action_WelcomeScreen_to_Timer)
     }
   }
 

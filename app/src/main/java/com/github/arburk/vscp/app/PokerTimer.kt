@@ -16,10 +16,7 @@ class PokerTimer : Fragment() {
   // onDestroyView.
   private val binding get() = _binding!!
 
-  override fun onCreateView(
-    inflater: LayoutInflater, container: ViewGroup?,
-    savedInstanceState: Bundle?
-  ): View? {
+  override fun onCreateView( inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 
     _binding = TimerBinding.inflate(inflater, container, false)
     return binding.root
@@ -38,6 +35,7 @@ class PokerTimer : Fragment() {
       Log.i("Action", "play button was pressed")
       pauseTimer(true)
     }
+
   }
 
   private fun pauseTimer(input: Boolean) {
