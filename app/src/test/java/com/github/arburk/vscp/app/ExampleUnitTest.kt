@@ -1,4 +1,4 @@
-package com.github.arburk.vscp.pokertimer
+package com.github.arburk.vscp.app
 
 import org.junit.Test
 
