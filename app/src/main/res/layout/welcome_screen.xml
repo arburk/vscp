@@ -7,25 +7,46 @@
     android:layout_height="match_parent"
     tools:context="com.github.arburk.vscp.app.WelcomeScreen">
 
+  <ImageView
+      android:id="@+id/titleImage"
+      android:layout_width="wrap_content"
+      android:layout_height="300dp"
+      android:src="@drawable/pokerbackground"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintBottom_toTopOf="@id/poker_timer"
+      app:layout_constraintVertical_bias="0.0"
+      android:contentDescription="same image as used on website"/>
+
   <TextView
       android:id="@+id/textview_first"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="@string/hello_first_fragment"
-      app:layout_constraintTop_toTopOf="parent"
+      android:text="@string/vscp"
+      app:layout_constraintTop_toBottomOf="@id/titleImage"
       app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintBottom_toTopOf="@id/button_first"
-  />
+      app:layout_constraintEnd_toEndOf="parent"/>
 
   <Button
-      android:id="@+id/button_first"
+      android:id="@+id/poker_timer"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="@string/next"
+      android:text="@string/timer"
       app:layout_constraintTop_toBottomOf="@id/textview_first"
       app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintBottom_toBottomOf="parent"
   />
+
+  <Button
+      android:id="@+id/start_tournament"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/tournament"
+      app:layout_constraintTop_toBottomOf="@id/poker_timer"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+  />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

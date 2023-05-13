@@ -32,7 +32,7 @@ class WelcomeScreen : Fragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
 
-    binding.buttonFirst.setOnClickListener {
+    binding.pokerTimer.setOnClickListener {
       findNavController().navigate(R.id.action_WelcomeScreen_to_SecondFragment)
     }
   }
