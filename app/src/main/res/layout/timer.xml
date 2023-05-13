@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/timer_table_layout"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:paddingTop="50dp">
+
+
+  <TextView
+      android:id="@+id/small_blind"
+      android:text="@string/small_blind"
+      android:layout_width="match_parent"
+      android:textSize="48sp"
+      android:fontFamily="@font/dosis_extrabold"
+      android:textAlignment="center"/>
+
+  <TableRow
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:paddingTop="50dp">
+
+    <TextView
+        android:id="@+id/prev_blind"
+        android:text="previous blind"
+        android:layout_height="wrap_content"
+        android:layout_width="0dip"
+        android:layout_weight="1"
+        android:textSize="32sp"
+        android:textAlignment="viewStart"/>
+
+    <Button
+        android:id="@+id/pause_button"
+        android:visibility="gone"
+        android:text="Pause"
+        android:layout_height="wrap_content"
+        android:layout_width="0dip"
+        android:layout_weight="1"/>
+
+    <Button
+        android:id="@+id/play_button"
+        android:visibility="visible"
+        android:text="Play"
+        android:layout_height="wrap_content"
+        android:layout_width="0dip"
+        android:layout_weight="1"/>
+
+
+    <TextView
+        android:id="@+id/next_blind"
+        android:text="next blind"
+        android:textSize="32sp"
+        android:textAlignment="viewEnd"
+        android:layout_height="wrap_content"
+        android:layout_width="0dip"
+        android:layout_weight="1"
+    />
+
+
+  </TableRow>
+
+  <TextView
+      android:id="@+id/big_blind"
+      android:text="@string/big_blind"
+      android:textSize="48sp"
+      android:textAlignment="center"
+      android:paddingTop="50dp"
+      android:fontFamily="@font/dosis_extrabold"
+  />
+
+</TableLayout>
