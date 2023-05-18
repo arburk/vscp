@@ -7,7 +7,7 @@
 
   <fragment
       android:id="@+id/WelcomeScreen"
-      android:name="com.github.arburk.vscp.app.WelcomeScreen"
+      android:name="com.github.arburk.vscp.app.activity.WelcomeScreen"
       android:label="@string/title"
       tools:layout="@layout/welcome_screen">
 
@@ -18,7 +18,7 @@
 
   <fragment
       android:id="@+id/Timer"
-      android:name="com.github.arburk.vscp.app.PokerTimer"
+      android:name="com.github.arburk.vscp.app.activity.PokerTimer"
       android:label="@string/timer"
       tools:layout="@layout/timer">
 
