@@ -8,10 +8,9 @@
     android:paddingRight="20dp"
     android:paddingTop="50dp">
 
-
   <TextView
       android:id="@+id/small_blind"
-      android:text="@string/small_blind"
+      android:text="small_blind"
       android:layout_width="match_parent"
       android:textSize="48sp"
       android:fontFamily="@font/dosis_extrabold"
@@ -22,14 +21,15 @@
       android:layout_height="match_parent"
       android:paddingTop="50dp">
 
-    <TextView
+    <ImageButton
         android:id="@+id/prev_blind"
-        android:text="previous blind"
+        android:src="@drawable/previous"
+        android:background="@null"
+        android:tooltipText="@string/previous"
         android:layout_height="wrap_content"
         android:layout_width="0dip"
         android:layout_weight="1"
-        android:textSize="32sp"
-        android:textAlignment="viewStart"/>
+    />
 
     <Button
         android:id="@+id/pause_button"
@@ -47,23 +47,21 @@
         android:layout_width="0dip"
         android:layout_weight="1"/>
 
-
-    <TextView
+    <ImageButton
         android:id="@+id/next_blind"
-        android:text="next blind"
-        android:textSize="32sp"
-        android:textAlignment="viewEnd"
+        android:src="@drawable/next"
+        android:background="@null"
+        android:tooltipText="@string/next"
         android:layout_height="wrap_content"
         android:layout_width="0dip"
         android:layout_weight="1"
     />
 
-
   </TableRow>
 
   <TextView
       android:id="@+id/big_blind"
-      android:text="@string/big_blind"
+      android:text="big_blind"
       android:textSize="48sp"
       android:textAlignment="center"
       android:paddingTop="50dp"

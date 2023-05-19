@@ -41,7 +41,7 @@ class TimerService : Service() {
     initConfig()
 
     HandlerThread("ServiceStartArguments", THREAD_PRIORITY_FOREGROUND).apply {
-      Log.i("Trace", "onCreate")
+      Log.v("Trace", "onCreate")
       start()
     }
   }
@@ -49,20 +49,28 @@ class TimerService : Service() {
   fun getCurrentBlind(): Blind = config.rounds[currentRound]
 
   fun startTimer() {
-    Log.i("TimerService", "start timer was requested")
+    Log.v("TimerService", "start timer was requested")
     running = true
     // TODO
   }
 
   fun pauseTimer() {
-    Log.i("TimerService", "pause timer was requested")
+    Log.v("TimerService", "pause timer was requested")
     running = false
     // TODO
   }
 
   fun resetTimer() {
-    Log.i("TimerService", "reset timer was requested")
+    Log.v("TimerService", "reset timer was requested")
     currentRound = 0
+  }
+
+  fun jumpLevel(i: Int) {
+    val newLevel = currentRound + i
+    if (newLevel < 0 || newLevel >= config.rounds.size) {
+      return
+    }
+    currentRound = newLevel
   }
 
   private fun initConfig() {
@@ -80,7 +88,7 @@ class TimerService : Service() {
       Blind(1000, 2000)
     )
     config = ConfigModel(12, 1, vscpConfig)
-    Log.i("TimerService", "initConfig conducted")
+    Log.v("TimerService", "initConfig conducted")
   }
 
 }

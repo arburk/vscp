@@ -6,12 +6,11 @@
 
   <string name="timer">Poker Timer</string>
   <string name="tournament">Tournament</string>
-  <string name="previous">Previous</string>
+  <string name="previous">Previous blind level</string>
+  <string name="next">Next blind level</string>
 
   <string name="vscp">Very Swiss Championship Poker</string>
   <string name="feedback">send me your feedback</string>
-  <string name="small_blind">25 (TBD)</string>
-  <string name="big_blind">50 (TBD)</string>
   <string name="action_exit">Quit app</string>
   <string name="action_webpage">VSCP website</string>
   <string name="title_activity_setting_timer">SettingTimerActivity</string>
