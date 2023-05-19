@@ -7,6 +7,7 @@ import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Process.THREAD_PRIORITY_FOREGROUND
 import android.util.Log
+import androidx.preference.PreferenceManager
 import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.model.ConfigModel
 
@@ -51,13 +52,13 @@ class TimerService : Service() {
   fun startTimer() {
     Log.v("TimerService", "start timer was requested")
     running = true
-    // TODO
+    // TODO: implement timer functionality
   }
 
   fun pauseTimer() {
     Log.v("TimerService", "pause timer was requested")
     running = false
-    // TODO
+    // TODO implement timer functionality
   }
 
   fun resetTimer() {
@@ -73,8 +74,12 @@ class TimerService : Service() {
     currentRound = newLevel
   }
 
-  private fun initConfig() {
-    // TODO: initConfig
+  fun initConfig() {
+    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this /* Activity context */)
+    val min_per_round = sharedPreferences.getString("min_per_round", "12")!!.toInt()
+    val minute_per_warning = sharedPreferences.getString("minute_per_warning", "0")!!.toInt()
+
+    // TODO: init vscpConfig also from sharedPreferences
     val vscpConfig = arrayOf(
       Blind(25, 50),
       Blind(50, 100),
@@ -87,8 +92,8 @@ class TimerService : Service() {
       Blind(800, 1600),
       Blind(1000, 2000)
     )
-    config = ConfigModel(12, 1, vscpConfig)
-    Log.v("TimerService", "initConfig conducted")
+    config = ConfigModel(min_per_round, minute_per_warning, vscpConfig)
+    Log.v("TimerService", "initConfig conducted ${config}")
   }
 
 }

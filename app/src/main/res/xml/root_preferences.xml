@@ -2,37 +2,45 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
   <PreferenceCategory
-      app:title="@string/messages_header">
+      app:title="@string/common_header">
 
     <EditTextPreference
-        app:key="signature"
-        app:title="@string/signature_title"
+        app:key="min_per_round"
+        app:title="@string/minute_per_round"
         app:useSimpleSummaryProvider="true"/>
 
-    <ListPreference
-        app:key="reply"
-        app:title="@string/reply_title"
-        app:entries="@array/reply_entries"
-        app:entryValues="@array/reply_values"
-        app:defaultValue="reply"
+    <EditTextPreference
+        app:key="min_per_warning"
+        app:title="@string/minute_per_warning"
         app:useSimpleSummaryProvider="true"/>
 
   </PreferenceCategory>
 
   <PreferenceCategory
-      app:title="@string/sync_header">
+      app:title="@string/sound_header">
 
-    <SwitchPreferenceCompat
-        app:key="sync"
-        app:title="@string/sync_title"/>
+    <CheckBoxPreference
+        app:key="sound_enabled"
+        app:title="Enable sound"
+        app:useSimpleSummaryProvider="true"/>
 
-    <SwitchPreferenceCompat
-        app:key="attachment"
-        app:title="@string/attachment_title"
-        app:summaryOn="@string/attachment_summary_on"
-        app:summaryOff="@string/attachment_summary_off"
-        app:dependency="sync"/>
+    <Preference
+        app:key="sound_next_round"
+        app:title="@string/sound_next_round"
+        app:summary="TODO: Select a sound played when next round starts"/>
+
+    <Preference
+        app:key="sound_warning_of_next_round"
+        app:title="@string/sound_warning"
+        app:summary="TODO: Select a sound played as warning for next round"/>
+
 
   </PreferenceCategory>
+
+  <PreferenceCategory
+      app:title="@string/rounds_header">
+
+  </PreferenceCategory>
+
 
 </PreferenceScreen>
