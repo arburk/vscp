@@ -6,11 +6,13 @@
 
     <EditTextPreference
         app:key="min_per_round"
+        app:defaultValue="12"
         app:title="@string/minute_per_round"
         app:useSimpleSummaryProvider="true"/>
 
     <EditTextPreference
         app:key="min_per_warning"
+        app:defaultValue="1"
         app:title="@string/minute_per_warning"
         app:useSimpleSummaryProvider="true"/>
 
@@ -24,16 +26,15 @@
         app:title="Enable sound"
         app:useSimpleSummaryProvider="true"/>
 
-    <Preference
+    <com.github.arburk.vscp.app.settings.NotificationSoundPreference
         app:key="sound_next_round"
         app:title="@string/sound_next_round"
-        app:summary="TODO: Select a sound played when next round starts"/>
+        app:summary="Select a sound played when next round starts"/>
 
-    <Preference
+    <com.github.arburk.vscp.app.settings.NotificationSoundPreference
         app:key="sound_warning_of_next_round"
         app:title="@string/sound_warning"
-        app:summary="TODO: Select a sound played as warning for next round"/>
-
+        app:summary="Select a sound played as warning for next round"/>
 
   </PreferenceCategory>
 

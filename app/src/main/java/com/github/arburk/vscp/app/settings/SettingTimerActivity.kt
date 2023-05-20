@@ -5,10 +5,18 @@ import android.os.Bundle
 import android.text.InputType
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
+import androidx.preference.Preference.OnPreferenceChangeListener
 import androidx.preference.PreferenceFragmentCompat
 import com.github.arburk.vscp.app.R
+
+const val pref_key_min_per_round: String = "min_per_round"
+const val pref_key_min_per_warning: String = "min_per_warning"
+const val pref_key_sound_enabled: String = "sound_enabled"
+const val pref_key_sound_next_round: String = "sound_next_round"
+const val pref_key_sound_warning_of_next_round: String = "sound_warning_of_next_round"
 
 class SettingTimerActivity : AppCompatActivity() {
 
@@ -26,17 +34,31 @@ class SettingTimerActivity : AppCompatActivity() {
 
   class SettingsFragment : PreferenceFragmentCompat() {
 
+    val soundSelectionEnabler = SoundSelectionEnabler()
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
       setPreferencesFromResource(R.xml.root_preferences, rootKey)
       setPreferencesTypes()
     }
 
     private fun setPreferencesTypes() {
-      setFieldToNumberInput("min_per_round")
-      setFieldToNumberInput("min_per_warning")
+      setFieldToNumberInput(pref_key_min_per_round)
+      setFieldToNumberInput(pref_key_min_per_warning)
 
-      setSoundPicker("sound_next_round")
-      setSoundPicker("sound_warning_of_next_round")
+      val soundPreference: CheckBoxPreference? = findPreference(pref_key_sound_enabled)
+      soundSelectionEnabler.onPreferenceChange(soundPreference!!, soundPreference.isChecked)
+      soundPreference.onPreferenceChangeListener = soundSelectionEnabler
+    }
+
+    inner class SoundSelectionEnabler : OnPreferenceChangeListener {
+      override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
+        val soundPreference: NotificationSoundPreference? = findPreference(pref_key_sound_next_round)
+        val soundWrningPreference: NotificationSoundPreference? = findPreference(pref_key_sound_warning_of_next_round)
+        val isEnabled = newValue as Boolean
+        soundPreference?.isEnabled = isEnabled
+        soundWrningPreference?.isEnabled = isEnabled
+        return true
+      }
     }
 
     private fun setFieldToNumberInput(prefName: String) {
@@ -47,22 +69,12 @@ class SettingTimerActivity : AppCompatActivity() {
       }
     }
 
-    private fun setSoundPicker(prefName: String) {
-      // TODO: implement sound feature instead of disabling field
-      val prefField: Preference? = findPreference(prefName)
-      prefField?.isVisible = false
-    }
-
-
-
     override fun onConfigurationChanged(newConfig: Configuration) {
       super.onConfigurationChanged(newConfig)
       Log.v("SettingTimerActivity", "onConfigurationChanged ${newConfig}")
-
-    // TODO: update timer via initConfig
+      // TODO: update timer via initConfig
     }
   }
-
 
 
 }

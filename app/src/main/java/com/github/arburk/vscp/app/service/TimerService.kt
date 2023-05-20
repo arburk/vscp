@@ -2,6 +2,7 @@ package com.github.arburk.vscp.app.service
 
 import android.app.Service
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Binder
 import android.os.HandlerThread
 import android.os.IBinder
@@ -10,12 +11,15 @@ import android.util.Log
 import androidx.preference.PreferenceManager
 import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.model.ConfigModel
+import com.github.arburk.vscp.app.settings.pref_key_min_per_round
+import com.github.arburk.vscp.app.settings.pref_key_min_per_warning
 
-class TimerService : Service() {
+class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListener {
 
   private lateinit var config: ConfigModel
 
   private val binder = TimerServiceBinder()
+
   private var currentRound: Int = 0
   private var running = false // Observable?
 
@@ -39,10 +43,11 @@ class TimerService : Service() {
     // separate thread because the service normally runs in the process's
     // main thread, which we don't want to block.  We also make it
     // background priority so CPU-intensive work will not disrupt our UI.
-    initConfig()
+    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+    sharedPreferences.registerOnSharedPreferenceChangeListener(this)
 
+    initConfig(sharedPreferences)
     HandlerThread("ServiceStartArguments", THREAD_PRIORITY_FOREGROUND).apply {
-      Log.v("Trace", "onCreate")
       start()
     }
   }
@@ -74,10 +79,20 @@ class TimerService : Service() {
     currentRound = newLevel
   }
 
-  fun initConfig() {
-    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this /* Activity context */)
-    val min_per_round = sharedPreferences.getString("min_per_round", "12")!!.toInt()
-    val minute_per_warning = sharedPreferences.getString("minute_per_warning", "0")!!.toInt()
+  override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
+    Log.v("TimerService", "called MyListener#onSharedPreferenceChanged for $sharedPreferences")
+
+    when (key) {
+      pref_key_min_per_round -> config.minPerRound = sharedPreferences.getString(pref_key_min_per_round, config.minPerRound.toString())!!.toInt()
+      pref_key_min_per_warning -> config.minPerWarning = sharedPreferences.getString(pref_key_min_per_warning, config.minPerWarning.toString())!!.toInt()
+      else -> Log.i("TimerService", "unknown key[$key] detected in onSharedPreferenceChanged")
+    }
+    Log.v("TimerService", "onSharedPreferenceChanged changed config ${config}")
+  }
+
+  fun initConfig(sharedPreferences: SharedPreferences) {
+    val min_per_round = sharedPreferences.getString(pref_key_min_per_round, "12")!!.toInt()
+    val minute_per_warning = sharedPreferences.getString(pref_key_min_per_warning, "1")!!.toInt()
 
     // TODO: init vscpConfig also from sharedPreferences
     val vscpConfig = arrayOf(
