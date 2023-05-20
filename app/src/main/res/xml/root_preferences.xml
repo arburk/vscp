@@ -1,5 +1,5 @@
 <PreferenceScreen
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:android="http://schemas.android.com/apk/res/android">
 
   <PreferenceCategory
       app:title="@string/common_header">
@@ -15,6 +15,11 @@
         app:defaultValue="1"
         app:title="@string/minute_per_warning"
         app:useSimpleSummaryProvider="true"/>
+
+    <PreferenceScreen
+        app:key="round_definition"
+        app:title="@string/rounds_definition"
+    />
 
   </PreferenceCategory>
 
@@ -37,11 +42,5 @@
         app:summary="Select a sound played as warning for next round"/>
 
   </PreferenceCategory>
-
-  <PreferenceCategory
-      app:title="@string/rounds_header">
-
-  </PreferenceCategory>
-
 
 </PreferenceScreen>
