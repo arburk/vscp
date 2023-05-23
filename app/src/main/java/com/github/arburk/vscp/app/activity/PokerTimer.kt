@@ -1,5 +1,6 @@
 package com.github.arburk.vscp.app.activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -7,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.github.arburk.vscp.app.MainActivity
+import com.github.arburk.vscp.app.R
 import com.github.arburk.vscp.app.databinding.TimerBinding
 import com.github.arburk.vscp.app.service.TimerService
 
@@ -55,6 +58,8 @@ class PokerTimer : Fragment() {
       Log.v("PokerTimer", "nextBlind clicked")
       handleManualBlindChange(timerService, 1)
     }
+
+    binding.fab.setOnClickListener { findNavController().navigate(R.id.action_Timer_to_TimerSettings) }
   }
 
   private fun handleManualBlindChange(timerService: TimerService, stepToMove: Int) {
@@ -74,9 +79,10 @@ class PokerTimer : Fragment() {
   }
 
   private fun switchPlayPauseButtonsVisibility() {
-    val playBtnVisibility = binding.playButton.visibility
-    binding.playButton.visibility = binding.pauseButton.visibility
-    binding.pauseButton.visibility = playBtnVisibility
+    // Swap variables
+    binding.playButton.visibility = binding.pauseButton.visibility.also {
+      binding.pauseButton.visibility = binding.playButton.visibility
+    }
   }
 
   override fun onDestroyView() {

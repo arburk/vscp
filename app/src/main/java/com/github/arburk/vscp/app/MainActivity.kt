@@ -17,7 +17,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.github.arburk.vscp.app.databinding.ActivityMainBinding
 import com.github.arburk.vscp.app.service.TimerService
-import com.github.arburk.vscp.app.settings.SettingTimerActivity
+import com.github.arburk.vscp.app.settings.AppSettingsActivity
 import kotlin.system.exitProcess
 
 const val vscp_url = "http://vscp.ch"
@@ -59,10 +59,10 @@ class MainActivity : AppCompatActivity() {
     // Handle action bar item clicks here. The action bar will
     // automatically handle clicks on the Home/Up button, so long
     // as you specify a parent activity in AndroidManifest.xml.
-    Log.i("Lifecycle", "onOptionsItemSelected $item")
+    Log.i("MainActivity", "Lifecycle: onOptionsItemSelected $item")
     return when (item.itemId) {
       R.id.action_settings -> {
-        startActivity(Intent(this, SettingTimerActivity::class.java))
+        startActivity(Intent(this, AppSettingsActivity::class.java))
         return true
       }
 
@@ -89,20 +89,21 @@ class MainActivity : AppCompatActivity() {
   private val timerServiceConnection = object : ServiceConnection {
 
     override fun onServiceConnected(className: ComponentName, service: IBinder) {
-      Log.i("TimerService", "get Service")
+      Log.i("MainActivity", "get TimerService")
       timerService = (service as TimerService.TimerServiceBinder).getService()
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
-      Log.i("TimerService", "disconnected Service")
+      Log.i("MainActivity", "disconnected TimerService")
       // nothing to be done here
     }
   }
 
-  fun getTimerService() : TimerService = timerService
+  fun getTimerService(): TimerService = timerService
 
   override fun onDestroy() {
     super.onDestroy()
+    Log.v("MainActivity", "I say goodbye.")
     unbindService(timerServiceConnection)
   }
 }

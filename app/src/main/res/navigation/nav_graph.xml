@@ -25,5 +25,22 @@
     <action
         android:id="@+id/action_Timer_to_WelcomeScreen"
         app:destination="@id/WelcomeScreen"/>
+
+    <action
+        android:id="@+id/action_Timer_to_TimerSettings"
+        app:destination="@id/TimerSettings"/>
   </fragment>
+
+  <fragment
+      android:id="@+id/TimerSettings"
+      android:name="com.github.arburk.vscp.app.activity.RoundSettings"
+      android:label="@string/rounds_definition"
+      tools:layout="@layout/fragment_round_settings">
+
+    <action
+        android:id="@+id/Timer"
+        app:destination="@id/TimerSettings"/>
+  </fragment>
+
+
 </navigation>

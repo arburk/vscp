@@ -21,17 +21,12 @@
     </service>
 
     <activity
-        android:name=".settings.SettingTimerActivity"
+        android:name=".settings.AppSettingsActivity"
         android:exported="false"
         android:label="@string/title_activity_setting_timer"
         android:parentActivityName=".MainActivity">
     </activity>
-    <activity
-        android:name=".settings.BlindSettingsActivity"
-        android:exported="false"
-        android:label="@string/rounds_definition"
-        android:parentActivityName=".settings.SettingTimerActivity">
-    </activity>
+
     <activity
         android:name=".MainActivity"
         android:exported="true"
