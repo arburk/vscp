@@ -54,6 +54,12 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
 
   fun getCurrentBlind(): Blind = config.rounds[currentRound]
 
+  fun getRounds(): Array<Blind> = config.rounds
+
+  fun setRounds(rounds: Array<Blind>) {
+    config.rounds = rounds
+  }
+
   fun startTimer() {
     Log.v("TimerService", "start timer was requested")
     running = true
@@ -83,10 +89,15 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     Log.v("TimerService", "called MyListener#onSharedPreferenceChanged for $sharedPreferences")
 
     when (key) {
-      pref_key_min_per_round -> config.minPerRound = sharedPreferences.getString(pref_key_min_per_round, config.minPerRound.toString())!!.toInt()
-      pref_key_min_per_warning -> config.minPerWarning = sharedPreferences.getString(pref_key_min_per_warning, config.minPerWarning.toString())!!.toInt()
+      pref_key_min_per_round -> config.minPerRound =
+        sharedPreferences.getString(pref_key_min_per_round, config.minPerRound.toString())!!.toInt()
+
+      pref_key_min_per_warning -> config.minPerWarning =
+        sharedPreferences.getString(pref_key_min_per_warning, config.minPerWarning.toString())!!.toInt()
+
       else -> Log.i("TimerService", "unknown key[$key] detected in onSharedPreferenceChanged")
     }
+    //TODO: save the changes?
     Log.v("TimerService", "onSharedPreferenceChanged changed config ${config}")
   }
 
@@ -94,7 +105,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     val min_per_round = sharedPreferences.getString(pref_key_min_per_round, "12")!!.toInt()
     val minute_per_warning = sharedPreferences.getString(pref_key_min_per_warning, "1")!!.toInt()
 
-    // TODO: init vscpConfig also from sharedPreferences
+    // TODO: init vscpConfig from saved state if available
     val vscpConfig = arrayOf(
       Blind(25, 50),
       Blind(50, 100),

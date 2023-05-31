@@ -29,4 +29,8 @@
   <string name="rounds_definition">Blind Levels (rounds)</string>
   <string name="blinds">Blinds</string>
 
+  <!-- round settings row -->
+  <string name="round_id">Round %d</string>
+  <string name="small_big_blind_values">%d / %d</string>
+
 </resources>

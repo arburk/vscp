@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="horizontal"
+              android:padding="4dp">
+  <TextView
+      android:id="@+id/round_id"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Round 0"/>
+
+  <TextView
+      android:id="@+id/derease_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="-" />
+
+  <TextView
+      android:id="@+id/small_big"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Small / Big"
+      android:textStyle="bold" />
+
+  <TextView
+      android:id="@+id/inrease_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="+" />
+
+</LinearLayout>
