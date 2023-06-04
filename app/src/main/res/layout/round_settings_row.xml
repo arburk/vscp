@@ -3,30 +3,74 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="horizontal"
-              android:padding="4dp">
+              android:paddingBottom="0dp">
   <TextView
       android:id="@+id/round_id"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="Round 0"/>
+      android:textAlignment="textEnd"
+      android:textSize="18sp"
+      android:paddingTop="12dp"
+      android:layout_width="100dp"
+      android:layout_height="50dp"
+      android:layout_weight="1"/>
 
-  <TextView
+
+  <ImageButton
       android:id="@+id/derease_button"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="-" />
+      android:src="@drawable/minus"
+      android:scaleType="fitCenter"
+      android:layout_marginTop="6dp"
+      android:layout_marginStart="30dp"
+      android:paddingTop="4dp"
+      android:paddingBottom="4dp"
+      android:layout_height="30dp"
+      android:layout_width="10dp"
+      android:layout_weight="1"
+      android:background="@android:color/transparent"
+      android:contentDescription="@string/round_derease_button_desc"/>
+
+  <EditText
+      android:id="@+id/small_blind"
+      android:layout_width="25dp"
+      android:layout_height="50dp"
+      android:textAlignment="center"
+      android:inputType="number"
+      android:ems="2"
+      android:layout_weight="1"/>
 
   <TextView
-      android:id="@+id/small_big"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="Small / Big"
+      android:id="@+id/small_big_text"
+      android:textSize="18sp"
+      android:paddingTop="12dp"
+      android:layout_width="20dp"
+      android:layout_height="50dp"
+      android:layout_weight="1"
+      android:textAlignment="center"
+      android:text="@string/round_small_big_text"
+      android:textStyle="bold"/>
+
+  <TextView
+      android:id="@+id/big_blind"
+      android:textSize="18sp"
+      android:paddingTop="12dp"
+      android:layout_width="40dp"
+      android:layout_height="50dp"
+      android:layout_weight="1"
       android:textStyle="bold" />
 
-  <TextView
+  <ImageButton
       android:id="@+id/inrease_button"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="+" />
+      android:src="@drawable/plus"
+      android:textAlignment="textStart"
+      android:scaleType="fitCenter"
+      android:layout_marginTop="6dp"
+      android:layout_marginStart="30dp"
+      android:paddingTop="4dp"
+      android:paddingBottom="4dp"
+      android:layout_marginEnd="20dp"
+      android:layout_height="30dp"
+      android:layout_width="1dp"
+      android:layout_weight="1"
+      android:background="@android:color/transparent"
+      android:contentDescription="@string/round_increase_button_desc"/>
 
 </LinearLayout>

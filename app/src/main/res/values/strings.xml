@@ -30,7 +30,11 @@
   <string name="blinds">Blinds</string>
 
   <!-- round settings row -->
-  <string name="round_id">Round %d</string>
-  <string name="small_big_blind_values">%d / %d</string>
+  <string name="round_id">Round %s</string>
+  <string name="round_small_big_text">/</string>
+  <string name="round_remove_last_blind_button_desc">button to remove last round definition</string>
+  <string name="round_add_blind_button_desc">button_to_add_further_round_definition</string>
+  <string name="round_increase_button_desc">Increase blind setting</string>
+  <string name="round_derease_button_desc">Decrease blind setting</string>
 
 </resources>
