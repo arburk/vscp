@@ -8,22 +8,14 @@ import com.github.arburk.vscp.app.model.Blind
 
 class PokerTimerModel : ViewModel() {
 
-  private val _smallBlind : MutableLiveData<Int> = MutableLiveData()
+  private val _blind : MutableLiveData<Blind> = MutableLiveData()
   // establish connection between private variable and public one
   // anytime the private var is updated, the public one is updated as well
-  val smallBlind : LiveData<Int> = _smallBlind
-
-  private val _bigBlind : MutableLiveData<Int> = MutableLiveData()
-  val bigBlind : LiveData<Int> = _bigBlind
-
-  init {
-    Log.v("PokerTimerModel", "created")
-  }
+  val liveDataBlind : LiveData<Blind> = _blind
 
   fun initData(blind: Blind) {
     Log.v("PokerTimerModel", "initData called ${blind}")
-    _smallBlind.value = blind.small
-    _bigBlind.value = blind.big
+    _blind.value = blind
   }
 
 }

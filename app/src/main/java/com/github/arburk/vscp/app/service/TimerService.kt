@@ -47,7 +47,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     sharedPreferences.registerOnSharedPreferenceChangeListener(this)
 
     initConfig(sharedPreferences)
-    HandlerThread("ServiceStartArguments", THREAD_PRIORITY_FOREGROUND).apply {
+    HandlerThread("TimerService", THREAD_PRIORITY_FOREGROUND).apply {
       start()
     }
   }
@@ -106,20 +106,29 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     val minute_per_warning = sharedPreferences.getString(pref_key_min_per_warning, "1")!!.toInt()
 
     // TODO: init vscpConfig from saved state if available
-    val vscpConfig = arrayOf(
-      Blind(25, 50),
-      Blind(50, 100),
-      Blind(75, 150),
-      Blind(100, 200),
-      Blind(150, 300),
-      Blind(300, 600),
-      Blind(400, 800),
-      Blind(600, 1200),
-      Blind(800, 1600),
-      Blind(1000, 2000)
-    )
-    config = ConfigModel(min_per_round, minute_per_warning, vscpConfig)
+    config = ConfigModel(min_per_round, minute_per_warning, readBlindConfigFromDevice())
     Log.v("TimerService", "initConfig conducted ${config}")
   }
 
+  fun updateBlindsConfig(blindConfigToApply: Array<Blind>) {
+    config.rounds = blindConfigToApply
+    // TODO: save state to file
+    Log.v("TimerService", "update of config conducted ${config}")
+  }
+
+  /**
+   * TODO: read it from file before if available, return default if not found
+   */
+  private fun readBlindConfigFromDevice() = arrayOf(
+    Blind(25),
+    Blind(50),
+    Blind(75),
+    Blind(100),
+    Blind(150),
+    Blind(300),
+    Blind(400),
+    Blind(600),
+    Blind(800),
+    Blind(1000)
+  )
 }

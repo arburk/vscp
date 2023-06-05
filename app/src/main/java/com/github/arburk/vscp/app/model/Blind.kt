@@ -1,8 +1,13 @@
 package com.github.arburk.vscp.app.model
 
-data class Blind(
+import kotlin.math.absoluteValue
 
-  val small : Int,
-  val big : Int
+data class Blind(var small: Int) {
+  init {
+    if(small < 0) { small = small.absoluteValue }
+  }
 
-)
+  fun getBig(): Int = small * 2
+
+  fun getBigAsString(): String = getBig().toString()
+}

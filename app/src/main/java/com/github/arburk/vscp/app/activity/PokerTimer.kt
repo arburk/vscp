@@ -48,15 +48,8 @@ class PokerTimer : Fragment() {
       timerService.pauseTimer()
     }
 
-    binding.prevBlind.setOnClickListener {
-      Log.v("PokerTimer", "prevBlind clicked")
-      handleManualBlindChange(timerService, -1)
-    }
-
-    binding.nextBlind.setOnClickListener {
-      Log.v("PokerTimer", "nextBlind clicked")
-      handleManualBlindChange(timerService, 1)
-    }
+    binding.prevBlind.setOnClickListener { handleManualBlindChange(timerService, -1) }
+    binding.nextBlind.setOnClickListener { handleManualBlindChange(timerService, 1) }
 
     binding.fab.setOnClickListener { findNavController().navigate(R.id.action_Timer_to_TimerSettings) }
   }
@@ -67,13 +60,10 @@ class PokerTimer : Fragment() {
   }
 
   private fun bindContent(timerService: TimerService) {
-    pokerTimerModel.smallBlind.observe(((activity as MainActivity))) {
-      Log.v("PokerTimer", "small Blind change observed")
+    pokerTimerModel.liveDataBlind.observe(((activity as MainActivity))) {
+      Log.v("PokerTimer", "blind change observed")
       binding.smallBlind.text = timerService.getCurrentBlind().small.toString()
-    }
-    pokerTimerModel.bigBlind.observe((activity as MainActivity)) {
-      Log.v("PokerTimer", "big Blind change observed")
-      binding.bigBlind.text = timerService.getCurrentBlind().big.toString()
+      binding.bigBlind.text = timerService.getCurrentBlind().getBigAsString()
     }
   }
 

@@ -39,11 +39,11 @@ class RoundSettings : Fragment() {
   }
 
   private fun addBlind() {
-    var newRound = Blind(1, 2)
+    var newRound = Blind(1)
     timerService.getRounds().also {
       if (it.isNotEmpty()) {
         val lastRound = it[it.size - 1]
-        newRound = Blind(lastRound.big, lastRound.big * 2)
+        newRound = Blind(lastRound.getBig())
       }
       timerService.setRounds(it.plus(newRound))
     }
