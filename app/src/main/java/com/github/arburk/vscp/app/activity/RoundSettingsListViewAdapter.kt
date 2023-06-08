@@ -107,7 +107,7 @@ class RoundSettingsListViewAdapter(
         }
         try {
           timerService.updateBlind(oldSmallAsInt, s.toString().toInt())
-        } catch (e: Exception) {
+        } catch (e: NumberFormatException) {
           Log.e("RoundSettingsListViewAdapter", "Failed to assign value '$s'", e)
           timerService.updateBlind(oldSmallAsInt, oldSmallAsInt)
         }
