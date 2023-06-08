@@ -1,3 +1,7 @@
 <resources>
   <dimen name="fab_margin">16dp</dimen>
+  <dimen name="timer_button_play_pause_width">14dp</dimen>
+  <dimen name="timer_button_play_pause_margin">20dp</dimen>
+  <dimen name="timer_button_next_prev_text_size">96sp</dimen>
+  <dimen name="timer_button_next_prev_padding">50dp</dimen>
 </resources>

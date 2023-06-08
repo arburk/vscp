@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <TableLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/timer_table_layout"
     android:layout_height="match_parent"
-    android:layout_width="match_parent"
-    android:paddingLeft="20dp"
-    android:paddingRight="20dp"
-    android:paddingTop="50dp">
-
+    android:layout_width="match_parent">
 
   <TextView
       android:id="@+id/small_blind"
-      android:text="@string/small_blind"
+      android:text="small"
       android:layout_width="match_parent"
-      android:textSize="48sp"
+      android:textSize="@dimen/timer_button_next_prev_text_size"
+      android:padding="@dimen/timer_button_next_prev_padding"
       android:fontFamily="@font/dosis_extrabold"
       android:textAlignment="center"/>
 
@@ -22,52 +20,84 @@
       android:layout_height="match_parent"
       android:paddingTop="50dp">
 
-    <TextView
+    <ImageButton
         android:id="@+id/prev_blind"
-        android:text="previous blind"
-        android:layout_height="wrap_content"
-        android:layout_width="0dip"
+        android:src="@drawable/previous"
+        android:scaleType="fitCenter"
+        android:layout_marginTop="6dp"
+        android:layout_marginStart="30dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_height="35dp"
+        android:layout_width="10dp"
         android:layout_weight="1"
-        android:textSize="32sp"
-        android:textAlignment="viewStart"/>
+        android:background="@drawable/image_button_background"
+    />
+
+    <ImageView
+        android:id="@+id/blankLeft"
+        android:layout_weight=".75"
+    />
 
     <Button
         android:id="@+id/pause_button"
         android:visibility="gone"
         android:text="Pause"
+        android:layout_marginLeft="@dimen/timer_button_play_pause_margin"
+        android:layout_marginRight="@dimen/timer_button_play_pause_margin"
         android:layout_height="wrap_content"
-        android:layout_width="0dip"
+        android:layout_width="@dimen/timer_button_play_pause_width"
         android:layout_weight="1"/>
 
     <Button
         android:id="@+id/play_button"
         android:visibility="visible"
         android:text="Play"
+        android:layout_marginLeft="@dimen/timer_button_play_pause_margin"
+        android:layout_marginRight="@dimen/timer_button_play_pause_margin"
         android:layout_height="wrap_content"
-        android:layout_width="0dip"
+        android:layout_width="@dimen/timer_button_play_pause_width"
         android:layout_weight="1"/>
 
-
-    <TextView
-        android:id="@+id/next_blind"
-        android:text="next blind"
-        android:textSize="32sp"
-        android:textAlignment="viewEnd"
-        android:layout_height="wrap_content"
-        android:layout_width="0dip"
-        android:layout_weight="1"
+    <ImageView
+        android:id="@+id/blankRight"
+        android:layout_weight=".75"
     />
 
+    <ImageButton
+        android:hapticFeedbackEnabled="true"
+        android:id="@+id/next_blind"
+        android:src="@drawable/next"
+        android:background="@drawable/image_button_background"
+        android:scaleType="fitCenter"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="30dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_height="35dp"
+        android:layout_width="10dp"
+        android:layout_weight="1"
+    />
 
   </TableRow>
 
   <TextView
       android:id="@+id/big_blind"
-      android:text="@string/big_blind"
-      android:textSize="48sp"
-      android:textAlignment="center"
-      android:paddingTop="50dp"
+      android:text="big"
+      android:layout_width="match_parent"
+      android:textSize="@dimen/timer_button_next_prev_text_size"
+      android:padding="@dimen/timer_button_next_prev_padding"
       android:fontFamily="@font/dosis_extrabold"
-  />
+      android:textAlignment="center"/>
+
+  <com.google.android.material.floatingactionbutton.FloatingActionButton
+      android:id="@+id/fab"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="bottom|end"
+      android:layout_marginEnd="@dimen/fab_margin"
+      android:layout_marginBottom="16dp"
+      android:backgroundTint="@color/purple_500"
+      android:src="@drawable/edit_pen" />
 
 </TableLayout>

@@ -6,10 +6,35 @@
 
   <string name="timer">Poker Timer</string>
   <string name="tournament">Tournament</string>
-  <string name="previous">Previous</string>
+  <string name="previous">Previous blind level</string>
+  <string name="next">Next blind level</string>
 
   <string name="vscp">Very Swiss Championship Poker</string>
   <string name="feedback">send me your feedback</string>
-  <string name="small_blind">25 (TBD)</string>
-  <string name="big_blind">50 (TBD)</string>
+  <string name="action_exit">Quit app</string>
+  <string name="action_webpage">VSCP website</string>
+  <string name="title_activity_setting_timer">SettingTimerActivity</string>
+
+  <!-- Preference Titles -->
+  <string name="common_header">Common</string>
+  <string name="sound_header">Notifications</string>
+
+  <!-- Common Preferences -->
+  <string name="minute_per_round">Round Minutes</string>
+  <string name="minute_per_warning">Warning Minutes</string>
+
+  <!-- Blind Levels Preferences -->
+  <string name="sound_next_round">Sound Preference</string>
+  <string name="sound_warning">One Minute Warning</string>
+  <string name="rounds_definition">Blind Levels (rounds)</string>
+  <string name="blinds">Blinds</string>
+
+  <!-- round settings row -->
+  <string name="round_id">Round %s</string>
+  <string name="round_small_big_text">/</string>
+  <string name="round_remove_last_blind_button_desc">button to remove last round definition</string>
+  <string name="round_add_blind_button_desc">button_to_add_further_round_definition</string>
+  <string name="round_increase_button_desc">Increase blind setting</string>
+  <string name="round_derease_button_desc">Decrease blind setting</string>
+
 </resources>

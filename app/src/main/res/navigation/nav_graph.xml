@@ -7,22 +7,40 @@
 
   <fragment
       android:id="@+id/WelcomeScreen"
-      android:name="com.github.arburk.vscp.app.WelcomeScreen"
+      android:name="com.github.arburk.vscp.app.activity.WelcomeScreen"
       android:label="@string/title"
       tools:layout="@layout/welcome_screen">
 
     <action
-        android:id="@+id/action_WelcomeScreen_to_SecondFragment"
-        app:destination="@id/SecondFragment"/>
+        android:id="@+id/action_WelcomeScreen_to_Timer"
+        app:destination="@id/Timer"/>
   </fragment>
+
   <fragment
-      android:id="@+id/SecondFragment"
-      android:name="com.github.arburk.vscp.app.PokerTimer"
+      android:id="@+id/Timer"
+      android:name="com.github.arburk.vscp.app.activity.PokerTimer"
       android:label="@string/timer"
       tools:layout="@layout/timer">
 
     <action
-        android:id="@+id/action_SecondFragment_to_WelcomeScreen"
+        android:id="@+id/action_Timer_to_WelcomeScreen"
         app:destination="@id/WelcomeScreen"/>
+
+    <action
+        android:id="@+id/action_Timer_to_TimerSettings"
+        app:destination="@id/TimerSettings"/>
   </fragment>
+
+  <fragment
+      android:id="@+id/TimerSettings"
+      android:name="com.github.arburk.vscp.app.activity.RoundSettings"
+      android:label="@string/rounds_definition"
+      tools:layout="@layout/fragment_round_settings">
+
+    <action
+        android:id="@+id/Timer"
+        app:destination="@id/TimerSettings"/>
+  </fragment>
+
+
 </navigation>
