@@ -7,24 +7,27 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.TextView
+import android.widget.*
+import androidx.lifecycle.LiveData
+import com.github.arburk.vscp.app.MainActivity
 import com.github.arburk.vscp.app.R
 import com.github.arburk.vscp.app.model.Blind
+import com.github.arburk.vscp.app.service.TimerService
 import kotlin.math.ceil
 
 class RoundSettingsListViewAdapter(
 
   private val context: Context,
-  private val arrayList: List<RoundSettingsViewModel>
+  private val arrayList: List<PokerTimerModel>
 ) : BaseAdapter() {
+
+  val timerService: TimerService = (context as MainActivity).getTimerService()
+
   override fun getCount(): Int {
     return arrayList.size
   }
 
-  override fun getItem(position: Int): RoundSettingsViewModel {
+  override fun getItem(position: Int): PokerTimerModel {
     return arrayList[position]
   }
 
@@ -34,37 +37,39 @@ class RoundSettingsListViewAdapter(
 
   override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
     var linearLayoutView = convertView
-    val currentBlind = getItem(position).rounds.value!!
+    val currentBlind = getItem(position)
 
     if (convertView == null) {
       linearLayoutView = LayoutInflater.from(context)
         .inflate(R.layout.round_settings_row, parent, false)
 
-      val findViewById = linearLayoutView.findViewById<EditText>(R.id.small_blind)
+      val smallBlindTextView = linearLayoutView.findViewById<EditText>(R.id.small_blind)
       // add initial text before addTextChangedListener to prevent obsolete events fired
-      findViewById.setText(currentBlind.small.toString())
-      // addTextChangedListener only once after initial inflating. Otherwise multiple instances are created/registered
-      findViewById.addTextChangedListener(BlindTextWatcher(currentBlind))
+      smallBlindTextView.setText(currentBlind.blind.value!!.small.toString())
+      // addTextChangedListener only once after initial inflating. Otherwise, multiple instances are created/registered
+      smallBlindTextView.addTextChangedListener(BlindTextWatcher(currentBlind.blind))
 
-      linearLayoutView.findViewById<ImageButton>(R.id.derease_button).setOnClickListener { decreaseBlind(currentBlind) }
-      linearLayoutView.findViewById<ImageButton>(R.id.inrease_button).setOnClickListener { increaseBlind(currentBlind) }
+      linearLayoutView.findViewById<ImageButton>(R.id.derease_button)
+        .setOnClickListener { decreaseBlind(currentBlind.blind) }
+      linearLayoutView.findViewById<ImageButton>(R.id.inrease_button)
+        .setOnClickListener { increaseBlind(currentBlind.blind) }
     }
 
     linearLayoutView!!.findViewById<TextView>(R.id.round_id).text =
       context.getString(R.string.round_id, formattedNumberOfCurrentRound(position))
 
-    linearLayoutView.findViewById<TextView>(R.id.big_blind).text = currentBlind.getBigAsString()
+    linearLayoutView.findViewById<TextView>(R.id.big_blind).text = currentBlind.blind.value!!.getBigAsString()
 
     return linearLayoutView
   }
 
-  private fun increaseBlind(currentBlind: Blind) {
+  private fun increaseBlind(currentBlind: LiveData<Blind>) {
     // TODO("Not yet implemented")
     Log.v("RoundSettingsListViewAdapter", "TODO: increaseBlind for $currentBlind")
 
   }
 
-  private fun decreaseBlind(currentBlind: Blind) {
+  private fun decreaseBlind(currentBlind: LiveData<Blind>) {
     // TODO("Not yet implemented")
     Log.v("RoundSettingsListViewAdapter", "TODO: decreaseBlind for $currentBlind")
   }
@@ -78,36 +83,40 @@ class RoundSettingsListViewAdapter(
   private fun calculatePadLength() = ceil(count.toDouble() / 10).toInt() + 1
 
 
-  inner class BlindTextWatcher(currentBlind: Blind) : TextWatcher {
+  inner class BlindTextWatcher(currentBlind: LiveData<Blind>) : TextWatcher {
 
     private var blind: Blind
-    private var oldText: String
+    private var oldSmallBlindAsText: String
 
     init {
-      blind = currentBlind
-      oldText = blind.small.toString()
+      blind = currentBlind.value!!
+      oldSmallBlindAsText = blind.small.toString()
     }
 
     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
       if (s != null) {
-        oldText = s.toString()
+        oldSmallBlindAsText = s.toString()
       }
     }
 
     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
       Log.v("RoundSettingsListViewAdapter", "TODO: onTextChanged $s for $blind")
       if (s != null && s.toString().isNotBlank()) {
+        val oldSmallAsInt: Int = oldSmallBlindAsText.let {
+          if (it.isEmpty()) 0 else oldSmallBlindAsText.toInt()
+        }
         try {
-          blind.small = s.toString().toInt()
+          timerService.updateBlind(oldSmallAsInt, s.toString().toInt())
         } catch (e: Exception) {
           Log.e("RoundSettingsListViewAdapter", "Failed to assign value '$s'", e)
-          blind.small = oldText.toInt()
+          timerService.updateBlind(oldSmallAsInt, oldSmallAsInt)
         }
       }
     }
 
     override fun afterTextChanged(s: Editable?) {
-      // TODO : update view
+      (context as MainActivity).findViewById<ListView?>(R.id.rounds_row_list_view).adapter =
+        RoundSettingsListViewAdapter(context, timerService.getRoundsAsPokerTimerModel())
     }
   }
 }

@@ -29,13 +29,14 @@ class RoundSettings : Fragment() {
     initLayout()
   }
 
-  private fun initLayout() {
-    val data = timerService.getRounds().map { elem -> RoundSettingsViewModel().apply { initData(elem) } }
-    val listViewOfRows = activity?.findViewById<ListView>(R.id.rounds_row_list_view)
-    listViewOfRows?.adapter = RoundSettingsListViewAdapter(requireContext(), data)
 
-    activity?.findViewById<ImageButton>(R.id.add_blind_button)?.setOnClickListener { addBlind() }
-    activity?.findViewById<ImageButton>(R.id.remove_last_blind_button)?.setOnClickListener { removeBlind() }
+
+  private fun initLayout() {
+    requireActivity().findViewById<ListView?>(R.id.rounds_row_list_view).adapter =
+      RoundSettingsListViewAdapter(requireContext(), timerService.getRoundsAsPokerTimerModel())
+
+    requireActivity().findViewById<ImageButton>(R.id.add_blind_button)?.setOnClickListener { addBlind() }
+    requireActivity().findViewById<ImageButton>(R.id.remove_last_blind_button)?.setOnClickListener { removeBlind() }
   }
 
   private fun addBlind() {

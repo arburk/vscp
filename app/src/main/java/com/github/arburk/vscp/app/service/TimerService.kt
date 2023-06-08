@@ -9,6 +9,7 @@ import android.os.IBinder
 import android.os.Process.THREAD_PRIORITY_FOREGROUND
 import android.util.Log
 import androidx.preference.PreferenceManager
+import com.github.arburk.vscp.app.activity.PokerTimerModel
 import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.model.ConfigModel
 import com.github.arburk.vscp.app.settings.pref_key_min_per_round
@@ -55,6 +56,12 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   fun getCurrentBlind(): Blind = config.rounds[currentRound]
 
   fun getRounds(): Array<Blind> = config.rounds
+
+  fun getRoundsAsPokerTimerModel(): List<PokerTimerModel> {
+    return config.rounds.map { elem ->
+      PokerTimerModel().apply { initData(elem) }
+    }
+  }
 
   fun setRounds(rounds: Array<Blind>) {
     config.rounds = rounds
@@ -131,4 +138,13 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     Blind(800),
     Blind(1000)
   )
+
+  fun updateBlind(oldSmallValue: Int, newSmallValue: Int) {
+    Log.v("TimerService", "change $oldSmallValue to $newSmallValue")
+    val blind2change = getRounds().filter { it.small == oldSmallValue }.firstOrNull()
+    Log.v("TimerService", "blind o change $blind2change")
+    if (blind2change != null) {
+      blind2change.small = newSmallValue
+    }
+  }
 }

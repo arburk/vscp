@@ -60,11 +60,8 @@ class PokerTimer : Fragment() {
   }
 
   private fun bindContent(timerService: TimerService) {
-    pokerTimerModel.liveDataBlind.observe(((activity as MainActivity))) {
-      Log.v("PokerTimer", "blind change observed")
-      binding.smallBlind.text = timerService.getCurrentBlind().small.toString()
-      binding.bigBlind.text = timerService.getCurrentBlind().getBigAsString()
-    }
+    binding.smallBlind.text = timerService.getCurrentBlind().small.toString()
+    binding.bigBlind.text = timerService.getCurrentBlind().getBigAsString()
   }
 
   private fun switchPlayPauseButtonsVisibility() {
