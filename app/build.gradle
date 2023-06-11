@@ -1,6 +1,8 @@
 plugins {
   id 'com.android.application'
   id 'org.jetbrains.kotlin.android'
+  id 'jacoco'
+  id "org.sonarqube" version "3.5.0.2730"
 }
 
 android {
@@ -22,26 +24,70 @@ android {
       minifyEnabled false
       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
+    debug {
+      testCoverageEnabled true
+      debuggable true
+    }
   }
+
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
   }
+
   kotlinOptions {
     jvmTarget = '1.8'
   }
+
   buildFeatures {
     viewBinding true
   }
+
   testOptions {
-    unitTests.all {
-      useJUnitPlatform()
+    unitTests {
+      returnDefaultValues = true
+      includeAndroidResources = true
+      all {
+        useJUnitPlatform()
+        jacoco {
+          jacoco.includeNoLocationClasses = true
+          jacoco.excludes = ['jdk.internal.*']
+        }
+      }
     }
   }
 }
 
-dependencies {
+apply plugin: 'jacoco'
 
+jacoco {
+  toolVersion = "0.8.8"
+}
+
+tasks.register('jacocoTestReport', JacocoReport) {
+  dependsOn['testDebugUnitTest']
+
+  reports {
+    xml.getRequired().set(true)
+    html.getRequired().set(true)
+  }
+
+  def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+  def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/debug", excludes: fileFilter)
+  def mainSrc = "${project.projectDir}/src/main/java"
+  def testSrc = "${project.projectDir}/src/test/java"
+
+  sourceDirectories.setFrom(files([mainSrc, testSrc]))
+  classDirectories.setFrom(files([debugTree]))
+  executionData.setFrom(fileTree(dir: "$buildDir", includes: [
+      "jacoco/testDebugUnitTest.exec",
+      "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec/testDebugUnitTest.exec",
+      "jacoco/testReleaseUnitTest.exec",
+      "outputs/code-coverage/connected/*coverage.ec"
+  ]))
+}
+
+dependencies {
   implementation 'androidx.core:core-ktx:1.10.1'
   implementation 'androidx.appcompat:appcompat:1.6.1'
   implementation 'com.google.android.material:material:1.9.0'
