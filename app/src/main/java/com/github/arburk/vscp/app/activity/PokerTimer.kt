@@ -79,6 +79,8 @@ class PokerTimer : Fragment() {
   override fun onDestroyView() {
     super.onDestroyView()
     _binding = null
+    pokerTimerViewModel.blind.removeObserver(blindObserver)
+    pokerTimerViewModel.remainingTime.removeObserver(remainingTimeObserver)
     timerService?.unregisterViewModel(pokerTimerViewModel)
   }
 
