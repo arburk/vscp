@@ -92,7 +92,14 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   private fun createTimerTask() = timerTask {
     when (remainingSeconds) {
       -1 -> resetTimerTaskToMaxTime()
-      0 -> jumpLevel(1)
+      0 -> {
+        if (currentRound + 1 >= config.rounds.size) {
+          resetTimer()
+          remainingSeconds++
+        } else {
+          jumpLevel(1)
+        }
+      }
     }
     remainingSeconds--
     updateViewModels()
