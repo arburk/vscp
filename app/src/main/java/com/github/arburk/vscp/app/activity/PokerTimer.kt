@@ -7,10 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.github.arburk.vscp.app.MainActivity
 import com.github.arburk.vscp.app.R
 import com.github.arburk.vscp.app.databinding.TimerBinding
+import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.service.TimerService
 
 class PokerTimer : Fragment() {
@@ -20,49 +22,52 @@ class PokerTimer : Fragment() {
   // This property is only valid between onCreateView and onDestroyView.
   private val binding get() = _binding!!
 
-  private val pokerTimerModel by viewModels<PokerTimerModel>()
+  private val pokerTimerViewModel by viewModels<PokerTimerViewModel>()
+  private var timerService: TimerService? = null
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
     _binding = TimerBinding.inflate(inflater, container, false)
+    timerService = (activity as MainActivity).getTimerService()
     return binding.root
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    Log.v("PokerTimer", "onViewCreated")
     super.onViewCreated(view, savedInstanceState)
-
-    val timerService = (activity as MainActivity).getTimerService()
-
-    pokerTimerModel.initData(timerService.getCurrentBlind())
-    bindContent(timerService)
-    registerButtons(timerService)
+    timerService?.registerViewModel(pokerTimerViewModel)
+    registerUiElements()
   }
 
-  private fun registerButtons(timerService: TimerService) {
+  private fun registerUiElements() {
+    if (timerService?.isRunning()!!) {
+      switchPlayPauseButtonsVisibility()
+    }
+
     binding.playButton.setOnClickListener {
       switchPlayPauseButtonsVisibility()
-      timerService.startTimer()
+      timerService?.startTimer()
     }
 
     binding.pauseButton.setOnClickListener {
       switchPlayPauseButtonsVisibility()
-      timerService.pauseTimer()
+      timerService?.pauseTimer()
     }
 
-    binding.prevBlind.setOnClickListener { handleManualBlindChange(timerService, -1) }
-    binding.nextBlind.setOnClickListener { handleManualBlindChange(timerService, 1) }
+    binding.prevBlind.setOnClickListener { timerService?.jumpLevel(-1) }
+    binding.nextBlind.setOnClickListener { timerService?.jumpLevel(1) }
+
+    pokerTimerViewModel.blind.observe(activity as MainActivity, blindObserver)
+    pokerTimerViewModel.remainingTime.observe(activity as MainActivity, remainingTimeObserver)
 
     binding.fab.setOnClickListener { findNavController().navigate(R.id.action_Timer_to_TimerSettings) }
   }
 
-  private fun handleManualBlindChange(timerService: TimerService, stepToMove: Int) {
-    timerService.jumpLevel(stepToMove)
-    bindContent(timerService)
+  private val blindObserver = Observer<Blind> { newBlind ->
+    binding.smallBlind.text = newBlind.small.toString()
+    binding.bigBlind.text = newBlind.getBigAsString()
   }
 
-  private fun bindContent(timerService: TimerService) {
-    binding.smallBlind.text = timerService.getCurrentBlind().small.toString()
-    binding.bigBlind.text = timerService.getCurrentBlind().getBigAsString()
-  }
+  private val remainingTimeObserver = Observer<String> { remainingtime -> binding.timeLeft.text = remainingtime }
 
   private fun switchPlayPauseButtonsVisibility() {
     // Swap variables
@@ -74,6 +79,7 @@ class PokerTimer : Fragment() {
   override fun onDestroyView() {
     super.onDestroyView()
     _binding = null
+    timerService?.unregisterViewModel(pokerTimerViewModel)
   }
 
 }

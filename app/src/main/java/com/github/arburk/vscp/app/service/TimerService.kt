@@ -9,11 +9,14 @@ import android.os.IBinder
 import android.os.Process.THREAD_PRIORITY_FOREGROUND
 import android.util.Log
 import androidx.preference.PreferenceManager
-import com.github.arburk.vscp.app.activity.PokerTimerModel
+import com.github.arburk.vscp.app.activity.PokerTimerViewModel
 import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.model.ConfigModel
 import com.github.arburk.vscp.app.settings.pref_key_min_per_round
 import com.github.arburk.vscp.app.settings.pref_key_min_per_warning
+import java.util.Timer
+import java.util.TimerTask
+import kotlin.concurrent.timerTask
 
 class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -22,7 +25,12 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   private val binder = TimerServiceBinder()
 
   private var currentRound: Int = 0
-  private var running = false // Observable?
+  private var running = false
+  private var remainingSeconds = -1
+  private val timer = Timer()
+  private var timerTask: TimerTask? = null
+
+  private var viewModels: List<PokerTimerViewModel> = arrayListOf()
 
   inner class TimerServiceBinder : Binder() {
     fun getService(): TimerService = this@TimerService
@@ -57,39 +65,69 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
 
   fun getRounds(): Array<Blind> = config.rounds
 
-  fun getRoundsAsPokerTimerModel(): List<PokerTimerModel> {
-    return config.rounds.map { elem ->
-      PokerTimerModel().apply { initData(elem) }
+  fun getTimeLeft(): String = String.format("%02d:%02d", remainingSeconds / 60, this.remainingSeconds % 60)
+
+  fun isRunning(): Boolean = running
+
+  fun getRoundsAsPokerTimerModel(): List<PokerTimerViewModel> {
+    return config.rounds.map { _ ->
+      PokerTimerViewModel().apply { initData(this@TimerService) }
     }
   }
 
   fun setRounds(rounds: Array<Blind>) {
     config.rounds = rounds
+    updateViewModels()
   }
 
   fun startTimer() {
     Log.v("TimerService", "start timer was requested")
-    running = true
-    // TODO: implement timer functionality
+    if (!running) {
+      running = true
+      timerTask = createTimerTask()
+      timer.scheduleAtFixedRate(timerTask, 1000, 1000)
+    }
+  }
+
+  private fun createTimerTask() = timerTask {
+    when (remainingSeconds) {
+      -1 -> resetTimerTaskToMaxTime()
+      0 -> jumpLevel(1)
+    }
+    remainingSeconds--
+    updateViewModels()
+    Log.v("TimerService", "remainingSeconds: $remainingSeconds")
   }
 
   fun pauseTimer() {
     Log.v("TimerService", "pause timer was requested")
-    running = false
-    // TODO implement timer functionality
+    if (running) {
+      running = false
+      timerTask?.cancel()
+    }
   }
 
-  fun resetTimer() {
+  private fun resetTimer() {
     Log.v("TimerService", "reset timer was requested")
+    pauseTimer()
     currentRound = 0
+    resetTimerTaskToMaxTime()
+  }
+
+  private fun resetTimerTaskToMaxTime() {
+    remainingSeconds = config.minPerRound * 60
+    updateViewModels()
   }
 
   fun jumpLevel(i: Int) {
+    Log.v("TimerService", "called jumpLevel for $i")
     val newLevel = currentRound + i
     if (newLevel < 0 || newLevel >= config.rounds.size) {
       return
     }
+
     currentRound = newLevel
+    resetTimerTaskToMaxTime()
   }
 
   override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
@@ -105,22 +143,18 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
       else -> Log.i("TimerService", "unknown key[$key] detected in onSharedPreferenceChanged")
     }
     //TODO: save the changes?
-    Log.v("TimerService", "onSharedPreferenceChanged changed config ${config}")
+    updateViewModels()
+    Log.v("TimerService", "onSharedPreferenceChanged changed config $config")
   }
 
-  fun initConfig(sharedPreferences: SharedPreferences) {
-    val min_per_round = sharedPreferences.getString(pref_key_min_per_round, "12")!!.toInt()
-    val minute_per_warning = sharedPreferences.getString(pref_key_min_per_warning, "1")!!.toInt()
+  private fun initConfig(sharedPreferences: SharedPreferences) {
+    val minPerRound = sharedPreferences.getString(pref_key_min_per_round, "12")!!.toInt()
+    val minutePerWarning = sharedPreferences.getString(pref_key_min_per_warning, "1")!!.toInt()
 
     // TODO: init vscpConfig from saved state if available
-    config = ConfigModel(min_per_round, minute_per_warning, readBlindConfigFromDevice())
-    Log.v("TimerService", "initConfig conducted ${config}")
-  }
-
-  fun updateBlindsConfig(blindConfigToApply: Array<Blind>) {
-    config.rounds = blindConfigToApply
-    // TODO: save state to file
-    Log.v("TimerService", "update of config conducted ${config}")
+    config = ConfigModel(minPerRound, minutePerWarning, readBlindConfigFromDevice())
+    resetTimer()
+    Log.v("TimerService", "initConfig conducted $config")
   }
 
   /**
@@ -141,10 +175,31 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
 
   fun updateBlind(oldSmallValue: Int, newSmallValue: Int) {
     Log.v("TimerService", "change $oldSmallValue to $newSmallValue")
-    val blind2change = getRounds().filter { it.small == oldSmallValue }.firstOrNull()
+    val blind2change = getRounds().firstOrNull { it.small == oldSmallValue }
     Log.v("TimerService", "blind o change $blind2change")
     if (blind2change != null) {
       blind2change.small = newSmallValue
+      updateViewModels()
+    }
+  }
+
+  fun registerViewModel(viewModel2Add: PokerTimerViewModel) {
+    if (!viewModels.contains(viewModel2Add)) {
+      viewModels = viewModels.plus(viewModel2Add.also { viewModel2Add.initData(this) })
+      Log.v("TimerService", "registered new viewModel $viewModel2Add")
+    }
+  }
+
+  fun unregisterViewModel(viewModel2Add: PokerTimerViewModel) {
+    if (viewModels.contains(viewModel2Add)) {
+      viewModels.indexOf(viewModel2Add).also { viewModels = viewModels.drop(it) }
+    }
+  }
+
+  private fun updateViewModels() {
+    Log.v("TimerService", "updateViewModels triggered")
+    viewModels.forEach {
+      it.initData(this)
     }
   }
 }

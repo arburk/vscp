@@ -18,7 +18,7 @@ import kotlin.math.ceil
 class RoundSettingsListViewAdapter(
 
   private val context: Context,
-  private val arrayList: List<PokerTimerModel>
+  private val arrayList: List<PokerTimerViewModel>
 ) : BaseAdapter() {
 
   val timerService: TimerService = (context as MainActivity).getTimerService()
@@ -27,7 +27,7 @@ class RoundSettingsListViewAdapter(
     return arrayList.size
   }
 
-  override fun getItem(position: Int): PokerTimerModel {
+  override fun getItem(position: Int): PokerTimerViewModel {
     return arrayList[position]
   }
 
