@@ -81,12 +81,22 @@
 
   </TableRow>
 
+    <TextView
+        android:id="@+id/time_left"
+        android:text="time:left"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:textSize="36sp"
+        android:padding="5dp"
+        android:fontFamily="@font/dosis_extrabold"
+        android:textAlignment="center"/>
+
   <TextView
       android:id="@+id/big_blind"
       android:text="big"
       android:layout_width="match_parent"
       android:textSize="@dimen/timer_button_next_prev_text_size"
-      android:padding="@dimen/timer_button_next_prev_padding"
+      android:padding="50dp"
       android:fontFamily="@font/dosis_extrabold"
       android:textAlignment="center"/>
 
