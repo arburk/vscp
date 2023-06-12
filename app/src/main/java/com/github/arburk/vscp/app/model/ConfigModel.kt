@@ -23,6 +23,11 @@ data class ConfigModel(
     result = 31 * result + rounds.contentHashCode()
     return result
   }
+
+  override fun toString(): String {
+    return "ConfigModel(minPerRound=$minPerRound, minPerWarning=$minPerWarning, rounds=${rounds.contentToString()})"
+  }
+
 }
 
 

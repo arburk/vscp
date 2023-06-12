@@ -27,7 +27,7 @@ class PokerTimer : Fragment() {
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
     _binding = TimerBinding.inflate(inflater, container, false)
-    timerService = (activity as MainActivity).getTimerService()
+    timerService = (activity as MainActivity).timerService
     return binding.root
   }
 

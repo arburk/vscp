@@ -6,14 +6,14 @@
 
   <string name="timer">Poker Timer</string>
   <string name="tournament">Tournament</string>
-  <string name="previous">Previous blind level</string>
-  <string name="next">Next blind level</string>
-
   <string name="vscp">Very Swiss Championship Poker</string>
-  <string name="feedback">send me your feedback</string>
   <string name="action_exit">Quit app</string>
   <string name="action_webpage">VSCP website</string>
   <string name="title_activity_setting_timer">SettingTimerActivity</string>
+  <string name="btn_desc_prev_blind">button to jump back to previous blind</string>
+  <string name="img_desc_placeholder">placeholder_img</string>
+  <string name="btn_desc_next_blind">button to jump forward to next blind</string>
+  <string name="btn_desc_blind_config">Configure blind levels</string>
 
   <!-- Preference Titles -->
   <string name="common_header">Common</string>
@@ -27,7 +27,6 @@
   <string name="sound_next_round">Sound Preference</string>
   <string name="sound_warning">One Minute Warning</string>
   <string name="rounds_definition">Blind Levels (rounds)</string>
-  <string name="blinds">Blinds</string>
 
   <!-- round settings row -->
   <string name="round_id">Round %s</string>

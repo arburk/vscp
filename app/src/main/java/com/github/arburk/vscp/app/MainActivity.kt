@@ -26,7 +26,9 @@ class MainActivity : AppCompatActivity() {
 
   private lateinit var appBarConfiguration: AppBarConfiguration
   private lateinit var binding: ActivityMainBinding
-  private lateinit var timerService: TimerService
+  private lateinit var _timerService: TimerService
+
+  val timerService: TimerService get() = _timerService
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -90,7 +92,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onServiceConnected(className: ComponentName, service: IBinder) {
       Log.i("MainActivity", "get TimerService")
-      timerService = (service as TimerService.TimerServiceBinder).getService()
+      _timerService = (service as TimerService.TimerServiceBinder).getService()
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
@@ -98,8 +100,6 @@ class MainActivity : AppCompatActivity() {
       // nothing to be done here
     }
   }
-
-  fun getTimerService(): TimerService = timerService
 
   override fun onDestroy() {
     super.onDestroy()

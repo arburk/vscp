@@ -25,7 +25,7 @@ class RoundSettings : Fragment() {
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    timerService = (activity as MainActivity).getTimerService()
+    timerService = (activity as MainActivity).timerService
     initLayout()
   }
 

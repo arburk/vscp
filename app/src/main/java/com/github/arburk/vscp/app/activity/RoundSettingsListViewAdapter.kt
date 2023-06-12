@@ -21,7 +21,7 @@ class RoundSettingsListViewAdapter(
   private val arrayList: List<PokerTimerViewModel>
 ) : BaseAdapter() {
 
-  val timerService: TimerService = (context as MainActivity).getTimerService()
+  val timerService: TimerService = (context as MainActivity).timerService
 
   override fun getCount(): Int {
     return arrayList.size
