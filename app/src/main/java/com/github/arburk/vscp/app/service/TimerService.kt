@@ -70,8 +70,8 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   fun isRunning(): Boolean = running
 
   fun getRoundsAsPokerTimerModel(): List<PokerTimerViewModel> {
-    return config.rounds.map { _ ->
-      PokerTimerViewModel().apply { initData(this@TimerService) }
+    return config.rounds.map {
+      PokerTimerViewModel().apply { initBlind(it) }
     }
   }
 
@@ -206,7 +206,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   private fun updateViewModels() {
     Log.v("TimerService", "updateViewModels triggered")
     viewModels.forEach {
-      it.initData(this)
+      it.update(this)
     }
   }
 }

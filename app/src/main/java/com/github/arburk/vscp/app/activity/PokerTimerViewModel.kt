@@ -17,8 +17,16 @@ class PokerTimerViewModel : ViewModel() {
   val blind: LiveData<Blind> = _blind
   val remainingTime: LiveData<String> = _remainingTime
 
+  fun initBlind(blind: Blind) {
+    _blind.value = blind
+  }
+
   fun initData(timerService: TimerService) {
-    Log.v("PokerTimerModel", "initData called $timerService")
+    _blind.value = timerService.getCurrentBlind()
+    _remainingTime.value = timerService.getTimeLeft()
+  }
+
+  fun update(timerService: TimerService) {
     _blind.postValue(timerService.getCurrentBlind())
     _remainingTime.postValue(timerService.getTimeLeft())
   }
