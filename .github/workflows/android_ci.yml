@@ -22,10 +22,11 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build jacocoTestReport sonarqube
+      run: ./gradlew --warning-mode all build test jacocoTestReport
 
     - name: Upload test results
       uses: actions/upload-artifact@v3
       with:
         name: Reports
-        path: build/reports
+        path: ${{ github.workspace }}/app/build/reports/
+        retention-days: 14
