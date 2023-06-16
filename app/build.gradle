@@ -1,6 +1,16 @@
 plugins {
   id 'com.android.application'
   id 'org.jetbrains.kotlin.android'
+  id 'jacoco'
+  id "org.sonarqube" version "4.2.1.3168"
+}
+
+sonarqube {
+  properties {
+    property "sonar.projectKey", "arburk_vscp"
+    property "sonar.organization", "arburk"
+    property "sonar.host.url", "https://sonarcloud.io"
+  }
 }
 
 android {
@@ -22,26 +32,76 @@ android {
       minifyEnabled false
       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
+    debug {
+      testCoverageEnabled true
+      debuggable true
+    }
   }
+
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
   }
+
   kotlinOptions {
     jvmTarget = '1.8'
   }
+
   buildFeatures {
     viewBinding true
   }
+
   testOptions {
-    unitTests.all {
-      useJUnitPlatform()
+    unitTests {
+      returnDefaultValues = true
+      includeAndroidResources = true
+      all {
+        useJUnitPlatform()
+        jacoco {
+          jacoco.includeNoLocationClasses = true
+          jacoco.excludes = ['jdk.internal.*']
+        }
+      }
     }
   }
 }
 
-dependencies {
+apply plugin: 'jacoco'
 
+jacoco {
+  toolVersion = "0.8.8"
+}
+
+tasks.register('jacocoTestReport', JacocoReport) {
+  dependsOn(testDebugUnitTest)
+  dependsOn(testReleaseUnitTest)
+  dependsOn(compileDebugJavaWithJavac)
+  dependsOn(compileDebugKotlin)
+
+  reports {
+    xml.getRequired().set(true)
+    html.getRequired().set(true)
+  }
+
+  def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+  def mainSrc = "${project.projectDir}/src/main/java"
+
+  //java compiled classes
+  def javaTree = fileTree(dir: "$project.buildDir/intermediates/javac/debug/classes", excludes: fileFilter)
+  //kotlin compiled classes
+  def kotlinTree = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+
+
+  sourceDirectories.setFrom(files([mainSrc]))
+  classDirectories.from = files([javaTree, kotlinTree])
+  executionData.setFrom(fileTree(dir: "$buildDir", includes: [
+      "jacoco/testReleaseUnitTest.exec",
+      "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
+      "outputs/code_coverage/debugAndroidTest/connected/**/coverage.ec",
+  ]))
+}
+
+dependencies {
   implementation 'androidx.core:core-ktx:1.10.1'
   implementation 'androidx.appcompat:appcompat:1.6.1'
   implementation 'com.google.android.material:material:1.9.0'
