@@ -1,9 +1,6 @@
 name: Android CI
 
-on:
-  push:
-  pull_request:
-    branches: [ "main" ]
+on: [push]
 
 jobs:
   build:
@@ -39,10 +36,13 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build with Gradle
+      run: ./gradlew build testDebugUnitTest jacocoTestReport sonar
+
+    - name: Sonar checks
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: ./gradlew build testDebugUnitTest jacocoTestReport sonar
+      run: ./gradlew sonar
 
     - name: Upload test results
       uses: actions/upload-artifact@v3
