@@ -36,7 +36,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./gradlew build testDebugUnitTest jacocoTestReport sonar
+      run: ./gradlew build testDebugUnitTest jacocoTestReport
 
     - name: Sonar checks
       env:
