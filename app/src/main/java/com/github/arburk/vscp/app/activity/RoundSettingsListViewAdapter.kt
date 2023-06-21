@@ -64,14 +64,29 @@ class RoundSettingsListViewAdapter(
   }
 
   private fun increaseBlind(currentBlind: LiveData<Blind>) {
-    // TODO("Not yet implemented")
-    Log.v("RoundSettingsListViewAdapter", "TODO: increaseBlind for $currentBlind")
+    currentBlind.value!!.small.also {
+      timerService.updateBlind(it, it + getIncreaseStep(it))
+    }
+    updateView()
+  }
 
+  private fun getIncreaseStep(it: Int): Int {
+    return if (it < 50) {
+      1
+    } else if (it < 100) {
+      5
+    } else if (it < 500) {
+      10
+    } else if (it < 1000) {
+      50
+    } else 100
   }
 
   private fun decreaseBlind(currentBlind: LiveData<Blind>) {
-    // TODO("Not yet implemented")
-    Log.v("RoundSettingsListViewAdapter", "TODO: decreaseBlind for $currentBlind")
+    currentBlind.value!!.small.also {
+      timerService.updateBlind(it, it - getIncreaseStep(it))
+    }
+    updateView()
   }
 
   private fun formattedNumberOfCurrentRound(position: Int) =
@@ -115,8 +130,12 @@ class RoundSettingsListViewAdapter(
     }
 
     override fun afterTextChanged(s: Editable?) {
-      (context as MainActivity).findViewById<ListView?>(R.id.rounds_row_list_view).adapter =
-        RoundSettingsListViewAdapter(context, timerService.getRoundsAsPokerTimerModel())
+      updateView()
     }
+  }
+
+  private fun updateView() {
+    (context as MainActivity).findViewById<ListView?>(R.id.rounds_row_list_view).adapter =
+      RoundSettingsListViewAdapter(context, timerService.getRoundsAsPokerTimerModel())
   }
 }
