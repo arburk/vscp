@@ -70,23 +70,21 @@ class RoundSettingsListViewAdapter(
     updateView()
   }
 
-  private fun getIncreaseStep(it: Int): Int {
-    return if (it < 50) {
-      1
-    } else if (it < 100) {
-      5
-    } else if (it < 500) {
-      10
-    } else if (it < 1000) {
-      50
-    } else 100
-  }
-
   private fun decreaseBlind(currentBlind: LiveData<Blind>) {
     currentBlind.value!!.small.also {
       timerService.updateBlind(it, it - getIncreaseStep(it))
     }
     updateView()
+  }
+
+  private fun getIncreaseStep(it: Int): Int {
+    return when {
+      it < 50 -> 1
+      it < 100 -> 5
+      it < 500 -> 10
+      it < 1000 -> 50
+      else -> 100
+    }
   }
 
   private fun formattedNumberOfCurrentRound(position: Int) =

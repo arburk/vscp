@@ -1,6 +1,7 @@
 package com.github.arburk.vscp.app.service
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Binder
@@ -8,7 +9,6 @@ import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Process.THREAD_PRIORITY_FOREGROUND
 import android.util.Log
-import androidx.preference.PreferenceManager
 import com.github.arburk.vscp.app.activity.PokerTimerViewModel
 import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.model.ConfigModel
@@ -31,6 +31,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   private var timerTask: TimerTask? = null
 
   private var viewModels: List<PokerTimerViewModel> = arrayListOf()
+  private val timerServiceThread: HandlerThread = HandlerThread(TimerService::class.simpleName, THREAD_PRIORITY_FOREGROUND)
 
   inner class TimerServiceBinder : Binder() {
     fun getService(): TimerService = this@TimerService
@@ -52,13 +53,25 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     // separate thread because the service normally runs in the process's
     // main thread, which we don't want to block.  We also make it
     // background priority so CPU-intensive work will not disrupt our UI.
-    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-    sharedPreferences.registerOnSharedPreferenceChangeListener(this)
+    initConfig()
+    timerServiceThread.start()
+  }
 
-    initConfig(sharedPreferences)
-    HandlerThread("TimerService", THREAD_PRIORITY_FOREGROUND).apply {
-      start()
-    }
+  override fun onDestroy() {
+    super.onDestroy()
+    timerServiceThread.quit()
+  }
+
+  private fun initConfig() {
+    val sharedPreferences = this.getSharedPreferences(this.packageName + "_preferences", Context.MODE_PRIVATE)
+    sharedPreferences.registerOnSharedPreferenceChangeListener(this)
+    val minPerRound = sharedPreferences.getString(pref_key_min_per_round, "12")!!.toInt()
+    val minutePerWarning = sharedPreferences.getString(pref_key_min_per_warning, "1")!!.toInt()
+
+    // TODO: init vscpConfig from saved state if available
+    config = ConfigModel(minPerRound, minutePerWarning, readBlindConfigFromDevice())
+    resetTimer()
+    Log.v("TimerService", "initConfig conducted $config")
   }
 
   fun getCurrentBlind(): Blind = config.rounds[currentRound]
@@ -152,16 +165,6 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     //TODO: save the changes?
     updateViewModels()
     Log.v("TimerService", "onSharedPreferenceChanged changed config $config")
-  }
-
-  private fun initConfig(sharedPreferences: SharedPreferences) {
-    val minPerRound = sharedPreferences.getString(pref_key_min_per_round, "12")!!.toInt()
-    val minutePerWarning = sharedPreferences.getString(pref_key_min_per_warning, "1")!!.toInt()
-
-    // TODO: init vscpConfig from saved state if available
-    config = ConfigModel(minPerRound, minutePerWarning, readBlindConfigFromDevice())
-    resetTimer()
-    Log.v("TimerService", "initConfig conducted $config")
   }
 
   /**
