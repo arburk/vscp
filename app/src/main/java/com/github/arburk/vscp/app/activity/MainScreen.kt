@@ -9,9 +9,6 @@ import androidx.navigation.fragment.findNavController
 import com.github.arburk.vscp.app.R
 import com.github.arburk.vscp.app.databinding.MainScreenBinding
 
-/**
- * A simple [Fragment] subclass as the default destination in the navigation.
- */
 class MainScreen : Fragment() {
 
   private var _binding: MainScreenBinding? = null
@@ -20,19 +17,13 @@ class MainScreen : Fragment() {
   // onDestroyView.
   private val binding get() = _binding!!
 
-  override fun onCreateView(
-    inflater: LayoutInflater, container: ViewGroup?,
-    savedInstanceState: Bundle?
-  ): View {
-
+  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,savedInstanceState: Bundle?): View {
     _binding = MainScreenBinding.inflate(inflater, container, false)
     return binding.root
-
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
-
     binding.pokerTimer.setOnClickListener {
       findNavController().navigate(R.id.action_MainScreen_to_Timer)
     }

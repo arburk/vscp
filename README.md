@@ -19,8 +19,9 @@ Project was launched in order to learn more about native Android application dev
 
 ## Credits
 
-### Icons & Graphics 
-Icons are downloaded by [flaticon](https://www.flaticon.com/free-icons/right-chevron) and created by 
+### Icons & Graphics
+Icons are downloaded by [flaticon](https://www.flaticon.com/) and created by 
 - gungyoga04
 - kliwir art
 - Fathema Khanom
+- justicon

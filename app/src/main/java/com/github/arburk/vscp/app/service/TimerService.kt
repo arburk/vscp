@@ -1,14 +1,27 @@
 package com.github.arburk.vscp.app.service
 
+import android.Manifest
+import android.app.Notification
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.media.RingtoneManager
 import android.os.Binder
+import android.os.Build
 import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Process.THREAD_PRIORITY_FOREGROUND
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.TaskStackBuilder
+import com.github.arburk.vscp.app.MainActivity
+import com.github.arburk.vscp.app.R
+import com.github.arburk.vscp.app.activity.PokerTimer
 import com.github.arburk.vscp.app.activity.PokerTimerViewModel
 import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.model.ConfigModel
@@ -31,7 +44,8 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   private var timerTask: TimerTask? = null
 
   private var viewModels: List<PokerTimerViewModel> = arrayListOf()
-  private val timerServiceThread: HandlerThread = HandlerThread(TimerService::class.simpleName, THREAD_PRIORITY_FOREGROUND)
+  private val timerServiceThread: HandlerThread =
+    HandlerThread(TimerService::class.simpleName, THREAD_PRIORITY_FOREGROUND)
 
   inner class TimerServiceBinder : Binder() {
     fun getService(): TimerService = this@TimerService
@@ -111,6 +125,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
           remainingSeconds++
         } else {
           jumpLevel(1)
+          postNotification()
         }
       }
     }
@@ -118,6 +133,70 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     updateViewModels()
     Log.v("TimerService", "remainingSeconds: $remainingSeconds")
   }
+
+  private fun postNotification() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val notifyMgr = NotificationManagerCompat.from(this)
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // check permissions to prevent exception to not yet opted in by user
+        notifyMgr.apply {
+          ActivityCompat.checkSelfPermission(this@TimerService, Manifest.permission.POST_NOTIFICATIONS)
+            .also {
+              if (it != PackageManager.PERMISSION_GRANTED) {
+                Log.v("TimerService", "Skip notification due to missing permissions")
+                return
+              }
+            }
+        }
+
+        val notification = buildNotification()
+        notifyMgr.notify(notification.hashCode(), notification)
+
+        return
+      }
+    }
+    // TODO: handle lower versions
+  }
+
+  private fun buildNotification(): Notification {
+    /* refactore timerService first to use follwoing appraach
+
+      val timerIntent =  NavDeepLinkBuilder(this)
+      .setComponentName(MainActivity::class.java)
+      .setGraph(R.navigation.nav_graph)
+      .setDestination(R.id.Timer)
+      //.setArguments(bundle)
+      .createPendingIntent()*/
+    val mainActivity = Intent(this, MainActivity::class.java).apply {
+      putExtra("targetFragment", PokerTimer::class.java.simpleName)
+    }
+
+    val pendingIntentTimer: PendingIntent? = TaskStackBuilder.create(this).run {
+      // Add the intent, which inflates the back stack
+      addNextIntentWithParentStack(mainActivity)
+      // Get the PendingIntent containing the entire back stack
+      getPendingIntent(
+        0,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+      )
+    }
+
+
+    return NotificationCompat.Builder(this, getString(R.string.notification_channel_id))
+      .setContentTitle("Next level ${currentRound + 1}")
+      .setContentText("${getCurrentBlind().small} / ${getCurrentBlind().getBig()}")
+      .setPriority(NotificationCompat.PRIORITY_HIGH)
+      .setTimeoutAfter(config.minPerRound * 60L * 1000)
+      .setSmallIcon(R.mipmap.icon_webp) // TODO: add proper icon, see also  issue #10
+      // TODO apply custom selected ringtone
+      .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+      .setVibrate(LongArray(1) { 500L })
+      // TOODO: Fix issue with correct timer handling
+      // .setContentIntent(pendingIntentTimer)
+      .build()
+  }
+
 
   fun pauseTimer() {
     Log.v("TimerService", "pause timer was requested")
@@ -135,7 +214,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   }
 
   private fun resetTimerTaskToMaxTime() {
-    remainingSeconds = config.minPerRound * 60
+    remainingSeconds = config.minPerRound * 60 - 50
     updateViewModels()
   }
 

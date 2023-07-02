@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="package_name">com.github.arburk.vscp.app</string>
+  <string name="vscp_url">http://vscp.ch</string>
+  <string name="notification_channel_id">NOTIFY_CHANNEL_TS_ID</string>
+</resources>

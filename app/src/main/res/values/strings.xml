@@ -36,4 +36,8 @@
   <string name="round_increase_button_desc">Increase blind setting</string>
   <string name="round_derease_button_desc">Decrease blind setting</string>
 
+
+  <string name="channel_name">TimerNotifications</string>
+  <string name="channel_description">notify the user when level changes</string>
+
 </resources>
