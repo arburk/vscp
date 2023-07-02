@@ -3,16 +3,16 @@
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/nav_graph"
-            app:startDestination="@id/WelcomeScreen">
+            app:startDestination="@id/MainScreen">
 
   <fragment
-      android:id="@+id/WelcomeScreen"
-      android:name="com.github.arburk.vscp.app.activity.WelcomeScreen"
+      android:id="@+id/MainScreen"
+      android:name="com.github.arburk.vscp.app.activity.MainScreen"
       android:label="@string/title"
-      tools:layout="@layout/welcome_screen">
+      tools:layout="@layout/main_screen">
 
     <action
-        android:id="@+id/action_WelcomeScreen_to_Timer"
+        android:id="@+id/action_MainScreen_to_Timer"
         app:destination="@id/Timer"/>
   </fragment>
 
@@ -23,8 +23,8 @@
       tools:layout="@layout/timer">
 
     <action
-        android:id="@+id/action_Timer_to_WelcomeScreen"
-        app:destination="@id/WelcomeScreen"/>
+        android:id="@+id/action_Timer_to_MainScreen"
+        app:destination="@id/MainScreen"/>
 
     <action
         android:id="@+id/action_Timer_to_TimerSettings"

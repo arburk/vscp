@@ -18,8 +18,7 @@
       android:orientation="horizontal"
       android:id="@+id/add_remove_layout"
       android:layout_width="match_parent"
-      android:layout_height="50dp"
-      tools:context=".activity.RoundSettings">
+      android:layout_height="50dp">
 
     <ImageButton
         android:id="@+id/remove_last_blind_button"
