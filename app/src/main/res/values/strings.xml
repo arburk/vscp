@@ -24,6 +24,7 @@
   <string name="minute_per_warning">Warning Minutes</string>
 
   <!-- Blind Levels Preferences -->
+  <string name="settings_notification_android">Manage notifications</string>
   <string name="sound_next_round">Sound Preference</string>
   <string name="sound_warning">One Minute Warning</string>
   <string name="rounds_definition">Blind Levels (rounds)</string>

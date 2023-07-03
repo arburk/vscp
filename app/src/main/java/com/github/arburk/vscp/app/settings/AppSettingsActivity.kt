@@ -1,5 +1,7 @@
 package com.github.arburk.vscp.app.settings
 
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.util.Log
@@ -15,6 +17,7 @@ const val pref_key_min_per_round: String = "min_per_round"
 const val pref_key_min_per_warning: String = "min_per_warning"
 const val pref_key_sound_enabled: String = "sound_enabled"
 const val pref_key_sound_next_round: String = "sound_next_round"
+const val pref_key_notify_settings: String = "notification_settings"
 const val pref_key_sound_warning_of_next_round: String = "sound_warning_of_next_round"
 
 class AppSettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
@@ -45,7 +48,25 @@ class AppSettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPref
 
   class SettingsFragment : PreferenceFragmentCompat() {
 
-    val soundSelectionEnabler = SoundSelectionEnabler()
+    private val soundSelectionEnabler = SoundSelectionEnabler()
+    private var ringtoneUriNextLevel: Uri? = null
+    private var ringtoneUriWarning: Uri? = null
+
+    private val nextLevelPicker =
+      registerForActivityResult(PickRingtone().apply { selectedRingtone = ringtoneUriNextLevel }) { uri: Uri? ->
+        if (uri != null) {
+          ringtoneUriNextLevel = uri
+          Log.v("AppSettingsActivity", "set nextLevel sound to $ringtoneUriNextLevel")
+        }
+      }
+
+    private val warningPicker =
+      registerForActivityResult(PickRingtone().apply { selectedRingtone = ringtoneUriWarning }) { uri: Uri? ->
+        if (uri != null) {
+          ringtoneUriWarning = uri
+          Log.v("AppSettingsActivity", "set warning sound to $ringtoneUriWarning")
+        }
+      }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
       setPreferencesFromResource(R.xml.root_preferences, rootKey)
@@ -59,15 +80,24 @@ class AppSettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPref
       val soundPreference: CheckBoxPreference? = findPreference(pref_key_sound_enabled)
       soundSelectionEnabler.onPreferenceChange(soundPreference!!, soundPreference.isChecked)
       soundPreference.onPreferenceChangeListener = soundSelectionEnabler
+
+      findPreference<NotificationPreference>(pref_key_notify_settings)?.isVisible =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+
     }
 
     inner class SoundSelectionEnabler : OnPreferenceChangeListener {
       override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
-        val soundPreference: NotificationSoundPreference? = findPreference(pref_key_sound_next_round)
-        val soundWrningPreference: NotificationSoundPreference? = findPreference(pref_key_sound_warning_of_next_round)
-        val isEnabled = newValue as Boolean
-        soundPreference?.isEnabled = isEnabled
-        soundWrningPreference?.isEnabled = isEnabled
+        val isSoundEnabled = newValue as Boolean
+        findPreference<NotificationSoundSelector>(pref_key_sound_next_round)?.apply {
+          isEnabled = isSoundEnabled
+          ringtoneSelectorLauncher = nextLevelPicker
+        }
+
+        findPreference<NotificationSoundSelector>(pref_key_sound_warning_of_next_round)?.apply {
+          isEnabled = isSoundEnabled
+          ringtoneSelectorLauncher = warningPicker
+        }
         return true
       }
     }
