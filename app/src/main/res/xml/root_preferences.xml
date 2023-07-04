@@ -34,11 +34,13 @@
     <com.github.arburk.vscp.app.settings.NotificationSoundSelector
         app:key="sound_next_round"
         app:title="@string/sound_next_round"
+        app:persistent="true"
         app:summary="Select a sound played when next round starts"/>
 
     <com.github.arburk.vscp.app.settings.NotificationSoundSelector
         app:key="sound_warning_of_next_round"
         app:title="@string/sound_warning"
+        app:persistent="true"
         app:summary="Select a sound played as warning for next round"/>
 
   </PreferenceCategory>

@@ -49,22 +49,24 @@ class AppSettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPref
   class SettingsFragment : PreferenceFragmentCompat() {
 
     private val soundSelectionEnabler = SoundSelectionEnabler()
-    private var ringtoneUriNextLevel: Uri? = null
-    private var ringtoneUriWarning: Uri? = null
 
     private val nextLevelPicker =
-      registerForActivityResult(PickRingtone().apply { selectedRingtone = ringtoneUriNextLevel }) { uri: Uri? ->
+      registerForActivityResult(PickRingtoneContract().apply {
+        sharedPrefKeyRingtone = pref_key_sound_next_round
+      }) { uri: Uri? ->
         if (uri != null) {
-          ringtoneUriNextLevel = uri
-          Log.v("AppSettingsActivity", "set nextLevel sound to $ringtoneUriNextLevel")
+          applySoundSelection(pref_key_sound_next_round, uri)
+          Log.v("AppSettingsActivity", "set nextLevel sound to $uri")
         }
       }
 
     private val warningPicker =
-      registerForActivityResult(PickRingtone().apply { selectedRingtone = ringtoneUriWarning }) { uri: Uri? ->
+      registerForActivityResult(PickRingtoneContract().apply {
+        sharedPrefKeyRingtone = pref_key_sound_warning_of_next_round
+      }) { uri: Uri? ->
         if (uri != null) {
-          ringtoneUriWarning = uri
-          Log.v("AppSettingsActivity", "set warning sound to $ringtoneUriWarning")
+          applySoundSelection(pref_key_sound_warning_of_next_round, uri)
+          Log.v("AppSettingsActivity", "set warning sound to $uri")
         }
       }
 
@@ -83,7 +85,12 @@ class AppSettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPref
 
       findPreference<NotificationPreference>(pref_key_notify_settings)?.isVisible =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+    }
 
+    private fun applySoundSelection(prefName: String, uri: Uri) {
+      findPreference<NotificationSoundSelector>(prefName)?.apply {
+        updateRingtone(uri)
+      }
     }
 
     inner class SoundSelectionEnabler : OnPreferenceChangeListener {
