@@ -11,6 +11,7 @@ import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.Preference.OnPreferenceChangeListener
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
 import com.github.arburk.vscp.app.R
 
 const val pref_key_min_per_round: String = "min_per_round"
@@ -89,7 +90,10 @@ class AppSettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPref
 
     private fun applySoundSelection(prefName: String, uri: Uri) {
       findPreference<NotificationSoundSelector>(prefName)?.apply {
-        updateRingtone(uri)
+        PreferenceManager.getDefaultSharedPreferences(context).edit().apply {
+          putString(key, uri.toString())
+          apply()
+        }
       }
     }
 
@@ -111,7 +115,7 @@ class AppSettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPref
 
     private fun setFieldToNumberInput(prefName: String) {
       val prefField: EditTextPreference? = findPreference(prefName)
-      Log.i("Settings", "setFieldToNumberInput for ${prefName}")
+      Log.i("Settings", "setFieldToNumberInput for $prefName")
       prefField?.setOnBindEditTextListener { editText ->
         editText.inputType = InputType.TYPE_CLASS_NUMBER
       }
