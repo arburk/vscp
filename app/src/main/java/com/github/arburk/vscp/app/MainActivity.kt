@@ -25,6 +25,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.github.arburk.vscp.app.activity.PokerTimer
+import com.github.arburk.vscp.app.common.PreferenceManagerWrapper
 import com.github.arburk.vscp.app.databinding.ActivityMainBinding
 import com.github.arburk.vscp.app.service.TimerService
 import com.github.arburk.vscp.app.settings.AppSettingsActivity
@@ -138,6 +139,7 @@ class MainActivity : AppCompatActivity() {
       ).apply {
         description = getString(R.string.channel_description)
       }.also {
+        it.setSound(PreferenceManagerWrapper.getChannelNotificationSound(this), null)
         // Register the channel with the system. You can't change the importance
         // or other notification behaviors after this.
         ContextCompat.getSystemService(this, NotificationManager::class.java)!!

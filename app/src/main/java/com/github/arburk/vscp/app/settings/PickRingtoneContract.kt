@@ -12,12 +12,13 @@ import androidx.preference.PreferenceManager
 
 class PickRingtoneContract : ActivityResultContract<Int, Uri?>() {
 
-  var sharedPrefKeyRingtone : String? = null
+  var sharedPrefKeyRingtone: String? = null
 
   override fun createIntent(context: Context, input: Int) =
     Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
       putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, input)
-      val selectedRingtone = PreferenceManager.getDefaultSharedPreferences(context).getString(sharedPrefKeyRingtone, null)
+      val selectedRingtone = PreferenceManager.getDefaultSharedPreferences(context)
+        .getString(sharedPrefKeyRingtone, null)
       if (!selectedRingtone.isNullOrBlank()) {
         Log.v("PickRingtoneContract", "initialize to $selectedRingtone")
         putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(selectedRingtone))

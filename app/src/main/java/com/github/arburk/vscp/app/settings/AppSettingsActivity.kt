@@ -86,6 +86,10 @@ class AppSettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPref
 
       findPreference<NotificationPreference>(pref_key_notify_settings)?.isVisible =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+
+      // beginning of version Build.VERSION_CODES.O this sound is defined on NotificationChannel
+      findPreference<NotificationSoundSelector>(pref_key_sound_next_round)?.isVisible =
+       (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
     }
 
     private fun applySoundSelection(prefName: String, uri: Uri) {
@@ -100,6 +104,7 @@ class AppSettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPref
     inner class SoundSelectionEnabler : OnPreferenceChangeListener {
       override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
         val isSoundEnabled = newValue as Boolean
+
         findPreference<NotificationSoundSelector>(pref_key_sound_next_round)?.apply {
           isEnabled = isSoundEnabled
           ringtoneSelectorLauncher = nextLevelPicker

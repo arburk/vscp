@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Binder
 import android.os.Build
 import android.os.HandlerThread
@@ -18,12 +17,11 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.preference.PreferenceManager
 import com.github.arburk.vscp.app.R
 import com.github.arburk.vscp.app.activity.PokerTimerViewModel
+import com.github.arburk.vscp.app.common.PreferenceManagerWrapper
 import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.model.ConfigModel
-import com.github.arburk.vscp.app.settings.NotificationSoundSelector
 import com.github.arburk.vscp.app.settings.pref_key_min_per_round
 import com.github.arburk.vscp.app.settings.pref_key_min_per_warning
 import com.github.arburk.vscp.app.settings.pref_key_sound_next_round
@@ -128,6 +126,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
           postNotification(pref_key_sound_next_round)
         }
       }
+      60 -> postNotification(pref_key_min_per_warning)
     }
     remainingSeconds--
     updateViewModels()
@@ -135,6 +134,12 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   }
 
   private fun postNotification(preKey: String) {
+    if (pref_key_min_per_warning == preKey) {
+      RingtoneManager.getRingtone(this, PreferenceManagerWrapper.getWarningNotificationSound(this))
+        .play()
+      return
+    }
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val notifyMgr = NotificationManagerCompat.from(this)
 
@@ -149,16 +154,17 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
               }
             }
         }
+      }
 
-        if (pref_key_sound_next_round == preKey) {
-          notificationNextRound().also { notifyMgr.notify(it.hashCode(), it) }
-        }
-        // TODO: add pref_key_sound_warning_of_next_round
-
-        return
+      if (pref_key_sound_next_round == preKey) {
+        notificationNextRound().also { notifyMgr.notify(it.hashCode(), it) }
       }
     }
-    // TODO: handle lower versions
+
+    // handle lagacy versions
+    if (pref_key_sound_next_round == preKey) {
+     // TODO send notification
+    }
   }
 
   private fun notificationNextRound(): Notification =
@@ -172,32 +178,16 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
       /**
        * TODO: apply on channel to set proper sound
        *
-       * Set the sound to play. It will play on the default stream.
-       * On some platforms, a notification that is noisy is more likely to be presented as a heads-up notification.
-       * On platforms Build.VERSION_CODES.O and above this value is ignored in favor of the value set on the notification's channel. On older platforms, this value is still used, so it is still required for apps supporting those platforms.
-       * See Also:
-       * NotificationChannelCompat.Builder.setSound(Uri, AudioAttributes)
+       * On platforms Build.VERSION_CODES.O and above this value is ignored in favor of the value set
+       * on the notification's channel. On older platforms, this value is still used, so it is still
+       * required for apps supporting those platforms.
        */
-      .setSound(getSoundUri(pref_key_sound_next_round))
+      .setSound(PreferenceManagerWrapper.getChannelNotificationSound(this))
 
       .setVibrate(LongArray(1) { 500L })
       // TOODO: Fix issue with correct timer handling
       // .setContentIntent(pendingIntentTimer)
       .build()
-
-  private fun getSoundUri(pref_key_sound_next_round: String): Uri? {
-    val valueAsString = PreferenceManager.getDefaultSharedPreferences(this).getString(pref_key_sound_next_round, null)
-    Log.v("TimerService","pref: $pref_key_sound_next_round, value: $valueAsString")
-    if (!valueAsString.isNullOrBlank()) {
-      try {
-        return Uri.parse(valueAsString)
-      } catch (e: Exception) {
-        Log.e("TimerService", "Failed to parse value of $pref_key_sound_next_round as Uri: $valueAsString")
-      }
-    }
-    return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-  }
-
 
   fun pauseTimer() {
     Log.v("TimerService", "pause timer was requested")
@@ -215,6 +205,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   }
 
   private fun resetTimerTaskToMaxTime() {
+    // TODO: remove -50 after testing
     remainingSeconds = config.minPerRound * 60 - 50
     updateViewModels()
   }
