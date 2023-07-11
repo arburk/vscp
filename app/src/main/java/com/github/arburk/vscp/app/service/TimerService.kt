@@ -2,6 +2,7 @@ package com.github.arburk.vscp.app.service
 
 import android.Manifest
 import android.app.Notification
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -134,12 +135,15 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   }
 
   private fun postNotification(preKey: String) {
-    if (pref_key_min_per_warning == preKey) {
-      RingtoneManager.getRingtone(this, PreferenceManagerWrapper.getWarningNotificationSound(this))
+    // TODO check if sound enabled
+    when(preKey) {
+      pref_key_min_per_warning -> RingtoneManager.getRingtone(this, PreferenceManagerWrapper.getWarningNotificationSound(this))
         .play()
-      return
+      pref_key_sound_next_round -> processNextRoundNotification()
     }
+  }
 
+  private fun processNextRoundNotification() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val notifyMgr = NotificationManagerCompat.from(this)
 
@@ -155,15 +159,14 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
             }
         }
       }
-
-      if (pref_key_sound_next_round == preKey) {
-        notificationNextRound().also { notifyMgr.notify(it.hashCode(), it) }
-      }
+      notificationNextRound().also { notifyMgr.notify(it.hashCode(), it) }
+      return
     }
 
     // handle lagacy versions
-    if (pref_key_sound_next_round == preKey) {
-     // TODO send notification
+    notificationNextRound().also {
+      (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+        .notify(it.hashCode(), it)
     }
   }
 
@@ -183,7 +186,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
        * required for apps supporting those platforms.
        */
       .setSound(PreferenceManagerWrapper.getChannelNotificationSound(this))
-
+      .setDefaults(Notification.DEFAULT_VIBRATE)
       .setVibrate(LongArray(1) { 500L })
       // TOODO: Fix issue with correct timer handling
       // .setContentIntent(pendingIntentTimer)

@@ -1,11 +1,13 @@
 package com.github.arburk.vscp.app.settings
 
+import android.app.NotificationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
@@ -58,6 +60,17 @@ class AppSettingsActivity : AppCompatActivity(), PreferenceFragmentCompat.OnPref
         if (uri != null) {
           applySoundSelection(pref_key_sound_next_round, uri)
           Log.v("AppSettingsActivity", "set nextLevel sound to $uri")
+
+          // update channel with new sound
+          // TODO: does not work - needs further investigation
+          // https://stackoverflow.com/questions/55717770/cant-update-sound-programmatically-for-notification-channel-on-android-oreo
+          /*
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ContextCompat.getSystemService(requireContext(), NotificationManager::class.java)!!
+              .getNotificationChannel(getString(R.string.notification_channel_id))
+              .setSound(uri, null)
+          }
+          */
         }
       }
 
