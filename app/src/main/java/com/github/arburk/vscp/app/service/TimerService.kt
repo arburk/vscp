@@ -208,8 +208,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   }
 
   private fun resetTimerTaskToMaxTime() {
-    // TODO: remove -50 after testing
-    remainingSeconds = config.minPerRound * 60 - 50
+    remainingSeconds = config.minPerRound * 60
     updateViewModels()
   }
 

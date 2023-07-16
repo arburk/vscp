@@ -18,7 +18,7 @@
   <TableRow
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:paddingTop="50dp">
+      android:paddingTop="@dimen/table_row_poker_timer_play_pause_padding_top">
 
     <ImageButton
         android:id="@+id/prev_blind"
@@ -96,7 +96,7 @@
       android:text="big"
       android:layout_width="match_parent"
       android:textSize="@dimen/timer_button_next_prev_text_size"
-      android:padding="50dp"
+      android:paddingTop="@dimen/tv_big_blind_padding_top"
       android:fontFamily="@font/dosis_extrabold"
       android:textAlignment="center"/>
 
@@ -106,7 +106,6 @@
       android:layout_height="wrap_content"
       android:layout_gravity="bottom|end"
       android:layout_marginEnd="@dimen/fab_margin"
-      android:layout_marginBottom="16dp"
       android:backgroundTint="@color/purple_500"
       android:src="@drawable/edit_pen"
       android:contentDescription="@string/btn_desc_blind_config"/>

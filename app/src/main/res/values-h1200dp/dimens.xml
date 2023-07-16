@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <dimen name="table_row_poker_timer_play_pause_padding_top">50dp</dimen>
+  <dimen name="tv_big_blind_padding_top">50dp</dimen>
+  <dimen name="list_view_rounds_height">600dp</dimen>
+</resources>
