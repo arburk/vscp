@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -16,6 +18,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -130,6 +133,7 @@ class MainActivity : AppCompatActivity() {
 
   private fun createNotificationChannel() {
     Log.v("MainActivity", "createNotificationChannel")
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val channelId = getString(R.string.notification_channel_id)
       NotificationChannel(
@@ -138,25 +142,32 @@ class MainActivity : AppCompatActivity() {
         NotificationManager.IMPORTANCE_HIGH
       ).apply {
         description = getString(R.string.channel_description)
+        enableLights(true)
+        lightColor = Color.RED
+        setSound(
+          PreferenceManagerWrapper.getChannelNotificationSound(this@MainActivity),
+          AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build()
+        )
       }.also {
-        it.setSound(PreferenceManagerWrapper.getChannelNotificationSound(this), null)
         // Register the channel with the system. You can't change the importance
         // or other notification behaviors after this.
         ContextCompat.getSystemService(this, NotificationManager::class.java)!!
           .createNotificationChannel(it)
       }
       Log.v("MainActivity", "$channelId created")
-
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        // Ask for permission to post notifications
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-          != PackageManager.PERMISSION_GRANTED
-        ) {
-          registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
-            .launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-      }
     }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && isLackOfNotificationPermission()) {
+      // Ask for permission to post notifications
+      registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+        .launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
   }
+
+  @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+  private fun isLackOfNotificationPermission() =
+    (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+        != PackageManager.PERMISSION_GRANTED)
 
 }

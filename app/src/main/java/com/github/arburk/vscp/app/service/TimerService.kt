@@ -18,6 +18,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.github.arburk.vscp.app.R
 import com.github.arburk.vscp.app.activity.PokerTimerViewModel
 import com.github.arburk.vscp.app.common.PreferenceManagerWrapper
@@ -135,10 +136,11 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   }
 
   private fun postNotification(preKey: String) {
-    // TODO check if sound enabled
-    when(preKey) {
-      pref_key_min_per_warning -> RingtoneManager.getRingtone(this, PreferenceManagerWrapper.getWarningNotificationSound(this))
+    when (preKey) {
+      pref_key_min_per_warning -> RingtoneManager
+        .getRingtone(this, PreferenceManagerWrapper.getWarningNotificationSound(this))
         .play()
+
       pref_key_sound_next_round -> processNextRoundNotification()
     }
   }
@@ -146,7 +148,6 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   private fun processNextRoundNotification() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val notifyMgr = NotificationManagerCompat.from(this)
-
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         // check permissions to prevent exception to not yet opted in by user
         notifyMgr.apply {
@@ -160,6 +161,12 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
         }
       }
       notificationNextRound().also { notifyMgr.notify(it.hashCode(), it) }
+      // TODO: ENABLE if default notification fails to play sound
+      /*
+      RingtoneManager
+        .getRingtone(this, PreferenceManagerWrapper.getChannelNotificationSound(this))
+        .play()
+      */
       return
     }
 
