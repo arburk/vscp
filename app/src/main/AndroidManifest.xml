@@ -3,6 +3,7 @@
           xmlns:tools="http://schemas.android.com/tools">
 
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
   <application
       android:usesCleartextTraffic="false"
@@ -34,7 +35,6 @@
         android:theme="@style/Theme.VSCPApp.NoActionBar">
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
-
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>

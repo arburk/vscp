@@ -1,15 +1,27 @@
 package com.github.arburk.vscp.app.service
 
+import android.Manifest
+import android.app.Notification
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Binder
+import android.os.Build
 import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Process.THREAD_PRIORITY_FOREGROUND
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.github.arburk.vscp.app.R
 import com.github.arburk.vscp.app.activity.PokerTimerViewModel
+import com.github.arburk.vscp.app.common.PreferenceManagerWrapper
 import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.model.ConfigModel
 import com.github.arburk.vscp.app.settings.pref_key_min_per_round
@@ -31,7 +43,8 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   private var timerTask: TimerTask? = null
 
   private var viewModels: List<PokerTimerViewModel> = arrayListOf()
-  private val timerServiceThread: HandlerThread = HandlerThread(TimerService::class.simpleName, THREAD_PRIORITY_FOREGROUND)
+  private val timerServiceThread: HandlerThread =
+    HandlerThread(TimerService::class.simpleName, THREAD_PRIORITY_FOREGROUND)
 
   inner class TimerServiceBinder : Binder() {
     fun getService(): TimerService = this@TimerService
@@ -111,13 +124,73 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
           remainingSeconds++
         } else {
           jumpLevel(1)
+          processNextRoundNotification()
         }
       }
+
+      4 -> RingtoneManager.getRingtone(this@TimerService, getFightCountdownUri()).play()
+
+      61 -> RingtoneManager.getRingtone(this@TimerService, getOneMinuteWarnungUri()).play()
     }
     remainingSeconds--
     updateViewModels()
     Log.v("TimerService", "remainingSeconds: $remainingSeconds")
   }
+
+  private fun getOneMinuteWarnungUri() = PreferenceManagerWrapper.getWarningNotificationSound(this@TimerService)
+
+  private fun getFightCountdownUri(): Uri? =
+    Uri.parse("android.resource://" + applicationContext.packageName + "/" + R.raw.countdown_fight)
+
+  private fun processNextRoundNotification() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val notifyMgr = NotificationManagerCompat.from(this)
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // check permissions to prevent exception to not yet opted in by user
+        notifyMgr.apply {
+          ActivityCompat.checkSelfPermission(this@TimerService, Manifest.permission.POST_NOTIFICATIONS)
+            .also {
+              if (it != PackageManager.PERMISSION_GRANTED) {
+                Log.v("TimerService", "Skip notification due to missing permissions")
+                return
+              }
+            }
+        }
+      }
+      notificationNextRound().also { notifyMgr.notify(it.hashCode(), it) }
+      // TODO: why is notification channel not playing sound?
+      
+      return
+    }
+
+    // handle lagacy versions
+    notificationNextRound().also {
+      (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
+        .notify(it.hashCode(), it)
+    }
+  }
+
+  private fun notificationNextRound(): Notification =
+    NotificationCompat.Builder(this, getString(R.string.notification_channel_id))
+      .setContentTitle("Next level ${currentRound + 1}")
+      .setContentText("${getCurrentBlind().small} / ${getCurrentBlind().getBig()}")
+      .setPriority(NotificationCompat.PRIORITY_HIGH)
+      .setTimeoutAfter(config.minPerRound * 60L * 1000)
+      .setSmallIcon(R.mipmap.icon_webp) // TODO: add proper icon, see also  issue #10
+
+      /**
+       * TODO: apply on channel to set proper sound
+       *
+       * On platforms Build.VERSION_CODES.O and above this value is ignored in favor of the value set
+       * on the notification's channel. On older platforms, this value is still used, so it is still
+       * required for apps supporting those platforms.
+       */
+      .setSound(PreferenceManagerWrapper.getChannelNotificationSound(this))
+      .setDefaults(Notification.DEFAULT_VIBRATE)
+      .setVibrate(LongArray(1) { 500L })
+      // TOODO: Fix issue with correct timer handling
+      // .setContentIntent(pendingIntentTimer)
+      .build()
 
   fun pauseTimer() {
     Log.v("TimerService", "pause timer was requested")
@@ -135,7 +208,8 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   }
 
   private fun resetTimerTaskToMaxTime() {
-    remainingSeconds = config.minPerRound * 60
+    // TODO: remove -50 after testing
+    remainingSeconds = config.minPerRound * 60 - 50
     updateViewModels()
   }
 

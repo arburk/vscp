@@ -21,19 +21,21 @@
   <PreferenceCategory
       app:title="@string/sound_header">
 
-    <CheckBoxPreference
-        app:key="sound_enabled"
-        app:title="Enable sound"
-        app:useSimpleSummaryProvider="true"/>
+    <com.github.arburk.vscp.app.settings.NotificationPreference
+        app:key="notification_settings"
+        app:title="@string/settings_notification_android"
+        app:summary="Manage android notification settings"/>
 
-    <com.github.arburk.vscp.app.settings.NotificationSoundPreference
+    <com.github.arburk.vscp.app.settings.NotificationSoundSelector
         app:key="sound_next_round"
         app:title="@string/sound_next_round"
+        app:persistent="true"
         app:summary="Select a sound played when next round starts"/>
 
-    <com.github.arburk.vscp.app.settings.NotificationSoundPreference
+    <com.github.arburk.vscp.app.settings.NotificationSoundSelector
         app:key="sound_warning_of_next_round"
         app:title="@string/sound_warning"
+        app:persistent="true"
         app:summary="Select a sound played as warning for next round"/>
 
   </PreferenceCategory>

@@ -24,6 +24,7 @@
   <string name="minute_per_warning">Warning Minutes</string>
 
   <!-- Blind Levels Preferences -->
+  <string name="settings_notification_android">Manage notifications</string>
   <string name="sound_next_round">Sound Preference</string>
   <string name="sound_warning">One Minute Warning</string>
   <string name="rounds_definition">Blind Levels (rounds)</string>
@@ -35,5 +36,9 @@
   <string name="round_add_blind_button_desc">button_to_add_further_round_definition</string>
   <string name="round_increase_button_desc">Increase blind setting</string>
   <string name="round_derease_button_desc">Decrease blind setting</string>
+
+
+  <string name="channel_name">TimerNotifications</string>
+  <string name="channel_description">notify the user when level changes</string>
 
 </resources>
