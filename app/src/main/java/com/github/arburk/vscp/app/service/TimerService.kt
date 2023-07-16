@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Binder
 import android.os.Build
 import android.os.HandlerThread
@@ -18,7 +19,6 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import com.github.arburk.vscp.app.R
 import com.github.arburk.vscp.app.activity.PokerTimerViewModel
 import com.github.arburk.vscp.app.common.PreferenceManagerWrapper
@@ -26,7 +26,6 @@ import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.model.ConfigModel
 import com.github.arburk.vscp.app.settings.pref_key_min_per_round
 import com.github.arburk.vscp.app.settings.pref_key_min_per_warning
-import com.github.arburk.vscp.app.settings.pref_key_sound_next_round
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.concurrent.timerTask
@@ -125,25 +124,23 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
           remainingSeconds++
         } else {
           jumpLevel(1)
-          postNotification(pref_key_sound_next_round)
+          processNextRoundNotification()
         }
       }
-      60 -> postNotification(pref_key_min_per_warning)
+
+      4 -> RingtoneManager.getRingtone(this@TimerService, getFightCountdownUri()).play()
+
+      61 -> RingtoneManager.getRingtone(this@TimerService, getOneMinuteWarnungUri()).play()
     }
     remainingSeconds--
     updateViewModels()
     Log.v("TimerService", "remainingSeconds: $remainingSeconds")
   }
 
-  private fun postNotification(preKey: String) {
-    when (preKey) {
-      pref_key_min_per_warning -> RingtoneManager
-        .getRingtone(this, PreferenceManagerWrapper.getWarningNotificationSound(this))
-        .play()
+  private fun getOneMinuteWarnungUri() = PreferenceManagerWrapper.getWarningNotificationSound(this@TimerService)
 
-      pref_key_sound_next_round -> processNextRoundNotification()
-    }
-  }
+  private fun getFightCountdownUri(): Uri? =
+    Uri.parse("android.resource://" + applicationContext.packageName + "/" + R.raw.countdown_fight)
 
   private fun processNextRoundNotification() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -161,12 +158,8 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
         }
       }
       notificationNextRound().also { notifyMgr.notify(it.hashCode(), it) }
-      // TODO: ENABLE if default notification fails to play sound
-      /*
-      RingtoneManager
-        .getRingtone(this, PreferenceManagerWrapper.getChannelNotificationSound(this))
-        .play()
-      */
+      // TODO: why is notification channel not playing sound?
+      
       return
     }
 

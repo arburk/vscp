@@ -132,15 +132,33 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun createNotificationChannel() {
-    Log.v("MainActivity", "createNotificationChannel")
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return // Skip for lower versions
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      val channelId = getString(R.string.notification_channel_id)
-      NotificationChannel(
-        channelId,
-        getString(R.string.channel_name),
-        NotificationManager.IMPORTANCE_HIGH
-      ).apply {
+    getString(R.string.notification_channel_id).also {
+      if(notificationChannelMissing(it)) {
+        // After notification channel creation, you cannot change the notification behaviors programmatically.
+        // The user has complete control at that point so it is useless to recreate it over and over again
+        executeChannelCreation(it)
+      }
+    }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && isLackOfNotificationPermission()) {
+      // Ask for permission to post notifications
+      registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+        .launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+  }
+
+  @RequiresApi(Build.VERSION_CODES.O)
+  private fun notificationChannelMissing(channelId: String): Boolean {
+    return ContextCompat.getSystemService(this, NotificationManager::class.java)!!
+      .getNotificationChannel(channelId) == null
+  }
+
+  @RequiresApi(Build.VERSION_CODES.O)
+  private fun executeChannelCreation(channelId: String) {
+    NotificationChannel(channelId, getString(R.string.channel_name), NotificationManager.IMPORTANCE_HIGH)
+      .apply {
         description = getString(R.string.channel_description)
         enableLights(true)
         lightColor = Color.RED
@@ -154,15 +172,7 @@ class MainActivity : AppCompatActivity() {
         ContextCompat.getSystemService(this, NotificationManager::class.java)!!
           .createNotificationChannel(it)
       }
-      Log.v("MainActivity", "$channelId created")
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && isLackOfNotificationPermission()) {
-      // Ask for permission to post notifications
-      registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
-        .launch(Manifest.permission.POST_NOTIFICATIONS)
-    }
-
+    Log.v("MainActivity", "$channelId created")
   }
 
   @RequiresApi(Build.VERSION_CODES.TIRAMISU)

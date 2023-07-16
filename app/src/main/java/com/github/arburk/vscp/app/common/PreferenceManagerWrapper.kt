@@ -1,6 +1,7 @@
 package com.github.arburk.vscp.app.common
 
 import android.app.NotificationManager
+import android.content.ContentResolver
 import android.content.Context
 import android.media.RingtoneManager
 import android.net.Uri
@@ -23,9 +24,6 @@ class PreferenceManagerWrapper {
     }
 
     fun getChannelNotificationSound(context: Context): Uri {
-      // TODO: use app defined on if nothing set
-      //  Uri soundUri = Uri.parse("android.resource://" + getApplicationContext().getPackageName() + "/" + R.raw.mytone);
-
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         ContextCompat.getSystemService(context, NotificationManager::class.java)!!
           .getNotificationChannel(context.getString(R.string.notification_channel_id))?.sound.also {
@@ -43,9 +41,15 @@ class PreferenceManagerWrapper {
     private fun getRingtoneUri(context: Context, key: String): Uri {
       PreferenceManager.getDefaultSharedPreferences(context)
         .getString(key, null)?.also {
-        if (it.isNotBlank()) {
-          return Uri.parse(it)
+          if (it.isNotBlank()) {
+            return Uri.parse(it)
+          }
         }
+      if (pref_key_sound_warning_of_next_round == key) {
+        val defaultWarning =
+          Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.one_minute_left)
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, defaultWarning.toString()).apply()
+        return defaultWarning
       }
       return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
     }
