@@ -159,7 +159,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
       }
       notificationNextRound().also { notifyMgr.notify(it.hashCode(), it) }
       // TODO: why is notification channel not playing sound?
-      
+
       return
     }
 
@@ -228,8 +228,17 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     Log.v("TimerService", "called MyListener#onSharedPreferenceChanged for $sharedPreferences")
 
     when (key) {
-      pref_key_min_per_round -> config.minPerRound =
-        sharedPreferences.getString(pref_key_min_per_round, config.minPerRound.toString())!!.toInt()
+      pref_key_min_per_round -> {
+        config.minPerRound =
+          sharedPreferences.getString(pref_key_min_per_round, config.minPerRound.toString())!!.toInt().also {
+            //recalculate remaining time
+            if (it > config.minPerRound) {
+              remainingSeconds += (it - config.minPerRound) * 60
+            } else {
+              remainingSeconds = it * 60
+            }
+          }
+      }
 
       pref_key_min_per_warning -> config.minPerWarning =
         sharedPreferences.getString(pref_key_min_per_warning, config.minPerWarning.toString())!!.toInt()
