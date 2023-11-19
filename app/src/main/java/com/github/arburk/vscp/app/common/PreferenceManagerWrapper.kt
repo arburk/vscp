@@ -47,7 +47,7 @@ class PreferenceManagerWrapper {
         }
       if (pref_key_sound_warning_of_next_round == key) {
         val defaultWarning =
-          Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.one_minute_left)
+          Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.packageName + "/" + R.raw.one_minute_warning)
         PreferenceManager.getDefaultSharedPreferences(context).edit().putString(key, defaultWarning.toString()).apply()
         return defaultWarning
       }

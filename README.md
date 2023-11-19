@@ -33,5 +33,3 @@ Sounds are downloaded by [freesound.org](https://freesound.org/) with credits to
 
 - [elliottdj](https://freesound.org/people/elliottdj/sounds/685903/) published
   under [Creative Commons 0 License](https://creativecommons.org/publicdomain/zero/1.0/).
-- [tim.kahn](https://freesound.org/people/tim.kahn/sounds/95245/) published under
-  the [Attribution 4.0 License](https://creativecommons.org/licenses/by/4.0/).

@@ -62,7 +62,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   }
 
   override fun onCreate() {
-    // Start up the thread running the service.  Note that we create a
+    // Start up the thread running the service. Note that we create a
     // separate thread because the service normally runs in the process's
     // main thread, which we don't want to block.  We also make it
     // background priority so CPU-intensive work will not disrupt our UI.
@@ -188,7 +188,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
       .setSound(PreferenceManagerWrapper.getChannelNotificationSound(this))
       .setDefaults(Notification.DEFAULT_VIBRATE)
       .setVibrate(LongArray(1) { 500L })
-      // TOODO: Fix issue with correct timer handling
+      // TODO: Fix issue with correct timer handling
       // .setContentIntent(pendingIntentTimer)
       .build()
 

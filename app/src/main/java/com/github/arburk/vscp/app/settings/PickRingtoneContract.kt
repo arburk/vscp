@@ -37,10 +37,11 @@ class PickRingtoneContract : ActivityResultContract<Int, Uri?>() {
       return null
     }
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      return intent?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI, Uri::class.java)
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      intent?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI, Uri::class.java)
+    } else {
+      @Suppress("DEPRECATION") // can be removed with removal of support for Build.VERSION.SDK_INT < 33
+      intent?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
     }
-
-    return intent?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
   }
 }
