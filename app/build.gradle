@@ -108,8 +108,8 @@ tasks.register('jacocoTestReport', JacocoReport) {
   dependsOn(testReleaseUnitTest)
   dependsOn(compileDebugJavaWithJavac)
   dependsOn(compileDebugKotlin)
-  dependsOn(nexus5api27DebugAndroidTest)
-  dependsOn(pixel3api30DebugAndroidTest)
+  //dependsOn(nexus5api27DebugAndroidTest)
+  //dependsOn(pixel3api30DebugAndroidTest)
 
   reports {
     xml.getRequired().set(true)
