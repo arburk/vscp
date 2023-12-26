@@ -4,3 +4,13 @@ plugins {
   id 'com.android.library' version '8.1.4' apply false
   id 'org.jetbrains.kotlin.android' version '1.9.21' apply false
 }
+
+ext {
+  androidXTestVersion = "1.5.0"
+  mockitoKotlinVersion = "5.2.1"
+  jUnitVersion = "4.13.2"
+  mockitoVersion = "1.10.19"
+  mockkVersion = '1.13.8'
+  junitJupiterVersion = '5.10.1'
+  fragmentTestingVersion = '1.6.2'
+}
