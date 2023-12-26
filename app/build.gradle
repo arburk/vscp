@@ -24,7 +24,7 @@ android {
     versionCode 1
     versionName "1.0"
 
-    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    testInstrumentationRunner "com.github.arburk.vscp.app.AndroidJunitRunnerWithDexOpener"
   }
 
   buildTypes {
@@ -40,13 +40,13 @@ android {
   }
 
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_17
-    targetCompatibility JavaVersion.VERSION_17
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
   }
 
   kotlinOptions {
     // android.kotlinOptions and kotlin.compilerOptions configuration blocks override each other. The last (lowest) block takes effect.
-    jvmTarget = '17'
+    jvmTarget = '1.8'
   }
 
   buildFeatures {
@@ -64,6 +64,7 @@ android {
           jacoco.includeNoLocationClasses = true
           jacoco.excludes = ['jdk.internal.*']
         }
+        jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
       }
     }
 
@@ -72,7 +73,13 @@ android {
         nexus5api27 (com.android.build.api.dsl.ManagedVirtualDevice) {
           device = "Nexus 5"
           apiLevel = 27
-          systemImageSource = "aosp" // To include Google services, use "google".
+          systemImageSource = "aosp"
+        }
+        pixel3api30(com.android.build.api.dsl.ManagedVirtualDevice) {
+          device = "Pixel 3"
+          apiLevel = 30
+          // Also use the AOSP Automated Test Device image for better emulator performance
+          systemImageSource = "aosp-atd"
         }
       }
     }
@@ -93,15 +100,16 @@ android {
 apply plugin: 'jacoco'
 
 jacoco {
-  toolVersion = "0.8.9"
+  toolVersion = "0.8.11"
 }
 
 tasks.register('jacocoTestReport', JacocoReport) {
   dependsOn(testDebugUnitTest)
   dependsOn(testReleaseUnitTest)
-  dependsOn(nexus5api27DebugAndroidTest)
   dependsOn(compileDebugJavaWithJavac)
   dependsOn(compileDebugKotlin)
+  dependsOn(nexus5api27DebugAndroidTest)
+  dependsOn(pixel3api30DebugAndroidTest)
 
   reports {
     xml.getRequired().set(true)
@@ -112,14 +120,14 @@ tasks.register('jacocoTestReport', JacocoReport) {
   def mainSrc = "${project.projectDir}/src/main/java"
 
   //java compiled classes
-  def javaTree = fileTree(dir: "$project.buildDir/intermediates/javac/debug/classes", excludes: fileFilter)
+  def javaTree = fileTree(dir: "$project.projectDir/build/intermediates/javac/debug/classes", excludes: fileFilter)
   //kotlin compiled classes
-  def kotlinTree = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+  def kotlinTree = fileTree(dir: "$project.projectDir/build/tmp/kotlin-classes/debug", excludes: fileFilter)
 
 
   sourceDirectories.setFrom(files([mainSrc]))
   classDirectories.from = files([javaTree, kotlinTree])
-  executionData.setFrom(fileTree(dir: "$buildDir", includes: [
+  executionData.setFrom(fileTree(dir: "$projectDir/build", includes: [
       "jacoco/testReleaseUnitTest.exec",
       "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
       "outputs/managed_device_code_coverage/**/coverage.ec",
@@ -139,15 +147,33 @@ dependencies {
   implementation 'androidx.legacy:legacy-support-v4:1.0.0'
   implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.1'
   implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
-  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+
+  // Required -- JUnit 4 framework
+  testImplementation "junit:junit:$jUnitVersion"
+  testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.8.2")
+  // Optional -- Robolectric environment
+//  testImplementation "androidx.test:core:$androidXTestVersion"
+  // Optional -- Mockito framework
+  testImplementation "org.mockito:mockito-core:$mockitoVersion"
+  testImplementation "org.awaitility:awaitility:4.2.0"
+  // Optional -- mockito-kotlin
+//  testImplementation "org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion"
+  // Optional -- Mockk framework
+//  testImplementation "io.mockk:mockk:$mockkVersion"
+
+//  testImplementation 'androidx.test.ext:junit-ktx:1.1.5'
+//  testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+//  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+
+  androidTestImplementation 'com.github.tmurakami:dexopener:2.0.5'
   androidTestImplementation 'androidx.test.ext:junit:1.1.5'
   androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
   androidTestImplementation 'androidx.test:runner:1.5.2'
   androidTestImplementation 'androidx.test:rules:1.5.0'
   androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1'
-  androidTestImplementation 'io.mockk:mockk-android:1.13.5'
-  androidTestImplementation 'io.mockk:mockk-agent:1.13.5'
+  androidTestImplementation "io.mockk:mockk-android:$mockkVersion"
+  androidTestImplementation "io.mockk:mockk-agent:$mockkVersion"
   androidTestImplementation 'io.insert-koin:koin-test-junit4:3.0.2'
-  debugImplementation "androidx.fragment:fragment-testing:1.6.0"
+
+  debugImplementation "androidx.fragment:fragment-testing:$fragmentTestingVersion"
 }

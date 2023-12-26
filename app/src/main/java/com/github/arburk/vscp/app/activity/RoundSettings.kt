@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ListView
+import androidx.annotation.VisibleForTesting
 import androidx.fragment.app.Fragment
 import com.github.arburk.vscp.app.MainActivity
 import com.github.arburk.vscp.app.R
@@ -13,18 +14,13 @@ import com.github.arburk.vscp.app.databinding.FragmentRoundSettingsBinding
 import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.service.TimerService
 
-class RoundSettings : Fragment {
-
+class RoundSettings() : Fragment() {
 
   private var _binding: FragmentRoundSettingsBinding? = null
   private val binding get() = _binding!!
-  private var timerService: TimerService? = null
 
-  constructor() : super()
-
-  internal constructor(mockedTimerService: TimerService) : this() {
-    this.timerService = mockedTimerService
-  }
+  @VisibleForTesting
+  internal var timerService: TimerService? = null
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
     _binding = FragmentRoundSettingsBinding.inflate(inflater, container, false)

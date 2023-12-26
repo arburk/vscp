@@ -1,7 +1,8 @@
 package com.github.arburk.vscp.app.model
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import junit.framework.TestCase.assertEquals
+import org.junit.Test
+
 
 class BlindTest {
   @Test

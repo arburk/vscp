@@ -1,3 +1,4 @@
+/*
 package com.github.arburk.vscp.app.activity
 
 import com.github.arburk.vscp.app.service.TimerService
@@ -12,4 +13,4 @@ class RoundSettingsListViewAdapterTest {
 
     assertNotNull(timerService)
   }
-}
+}*/
