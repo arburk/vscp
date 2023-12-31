@@ -107,7 +107,7 @@ jacoco {
 
 tasks.register('jacocoTestReport', JacocoReport) {
   dependsOn(testDebugUnitTest)
-  //dependsOn(testReleaseUnitTest)
+  dependsOn(testReleaseUnitTest)
   //dependsOn(compileDebugJavaWithJavac)
   //dependsOn(compileDebugKotlin)
   //dependsOn(nexus5api27DebugAndroidTest)
@@ -145,7 +145,7 @@ tasks.register('jacocoTestReport', JacocoReport) {
   sourceDirectories.setFrom(files([mainSrc]))
   classDirectories.from = files([javaTree, kotlinTree])
   executionData.setFrom(fileTree(dir: "$projectDir/build", includes: [
-    //  "jacoco/testReleaseUnitTest.exec",
+      "jacoco/testReleaseUnitTest.exec",
       "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
      // "outputs/managed_device_code_coverage/**/coverage.ec",
      // "outputs/code_coverage/debugAndroidTest/connected/**/coverage.ec",
