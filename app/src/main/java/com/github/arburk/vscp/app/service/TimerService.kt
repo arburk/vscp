@@ -16,6 +16,7 @@ import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Process.THREAD_PRIORITY_FOREGROUND
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -32,11 +33,17 @@ import kotlin.concurrent.timerTask
 
 class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListener {
 
-  private lateinit var config: ConfigModel
+  @VisibleForTesting
+  internal lateinit var config: ConfigModel
+
+  @VisibleForTesting
+  internal lateinit var sharedPreferences: SharedPreferences
 
   private val binder = TimerServiceBinder()
 
-  private var currentRound: Int = 0
+  @VisibleForTesting
+  internal var currentRound: Int = 0
+
   private var running = false
   private var remainingSeconds = -1
   private val timer = Timer()
@@ -76,15 +83,23 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   }
 
   private fun initConfig() {
-    val sharedPreferences = this.getSharedPreferences(this.packageName + "_preferences", Context.MODE_PRIVATE)
-    sharedPreferences.registerOnSharedPreferenceChangeListener(this)
-    val minPerRound = sharedPreferences.getString(pref_key_min_per_round, "12")!!.toInt()
-    val minutePerWarning = sharedPreferences.getString(pref_key_min_per_warning, "1")!!.toInt()
+    getSharedPreferences().apply {
+      registerOnSharedPreferenceChangeListener(this@TimerService)
+      val minPerRound = getString(pref_key_min_per_round, "12")!!.toInt()
+      val minutePerWarning = getString(pref_key_min_per_warning, "1")!!.toInt()
+      config = ConfigModel(minPerRound, minutePerWarning, readBlindConfigFromDevice())
 
-    // TODO: init vscpConfig from saved state if available
-    config = ConfigModel(minPerRound, minutePerWarning, readBlindConfigFromDevice())
-    resetTimer()
-    Log.v("TimerService", "initConfig conducted $config")
+      // TODO: init vscpConfig from saved state if available
+      resetTimer()
+      Log.v("TimerService", "initConfig conducted $config")
+    }
+  }
+
+  private fun getSharedPreferences(): SharedPreferences {
+    if (!this::sharedPreferences.isInitialized) {
+      sharedPreferences = this.getSharedPreferences(this.packageName + "_preferences", Context.MODE_PRIVATE)
+    }
+    return sharedPreferences
   }
 
   fun getCurrentBlind(): Blind = config.rounds[currentRound]

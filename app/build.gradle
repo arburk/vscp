@@ -5,14 +5,6 @@ plugins {
   id "org.sonarqube" version "4.2.1.3168"
 }
 
-sonarqube {
-  properties {
-    property "sonar.projectKey", "arburk_vscp"
-    property "sonar.organization", "arburk"
-    property "sonar.host.url", "https://sonarcloud.io"
-  }
-}
-
 android {
   namespace 'com.github.arburk.vscp.app'
   compileSdk 33
@@ -24,6 +16,7 @@ android {
     versionCode 1
     versionName "1.0"
 
+    //testInstrumentationRunner "com.github.arburk.vscp.app.AndroidJunitRunnerWithDexOpener"
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
   }
 
@@ -40,13 +33,13 @@ android {
   }
 
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_17
-    targetCompatibility JavaVersion.VERSION_17
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
   }
 
   kotlinOptions {
     // android.kotlinOptions and kotlin.compilerOptions configuration blocks override each other. The last (lowest) block takes effect.
-    jvmTarget = '17'
+    jvmTarget = '1.8'
   }
 
   buildFeatures {
@@ -54,6 +47,7 @@ android {
   }
 
   testOptions {
+
     unitTests {
       returnDefaultValues = true
       includeAndroidResources = true
@@ -63,22 +57,61 @@ android {
           jacoco.includeNoLocationClasses = true
           jacoco.excludes = ['jdk.internal.*']
         }
+        jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
       }
     }
+
+    managedDevices {
+      devices {
+        nexus5api27 (com.android.build.api.dsl.ManagedVirtualDevice) {
+          device = "Nexus 5"
+          apiLevel = 27
+          systemImageSource = "aosp"
+        }
+        pixel3api30(com.android.build.api.dsl.ManagedVirtualDevice) {
+          device = "Pixel 3"
+          apiLevel = 30
+          // Also use the AOSP Automated Test Device image for better emulator performance
+          systemImageSource = "aosp-atd"
+        }
+      }
+    }
+
+    packagingOptions {
+      exclude 'META-INF/DEPENDENCIES'
+      exclude 'META-INF/LICENSE*.*'
+      exclude 'META-INF/NOTICE*.*'
+      exclude 'META-INF/notice.txt'
+      exclude 'META-INF/ASL2.0'
+      exclude 'META-INF/LGPL2.1'
+      exclude 'META-INF/AL2.0'
+      exclude("META-INF/*.kotlin_module")
+    }
+  }
+}
+
+sonarqube {
+  properties {
+    property "sonar.projectKey", "arburk_vscp"
+    property "sonar.organization", "arburk"
+    property "sonar.host.url", "https://sonarcloud.io"
   }
 }
 
 apply plugin: 'jacoco'
 
 jacoco {
-  toolVersion = "0.8.9"
+  version = "0.8.11"
+  toolVersion = "0.8.11"
 }
 
 tasks.register('jacocoTestReport', JacocoReport) {
   dependsOn(testDebugUnitTest)
   dependsOn(testReleaseUnitTest)
-  dependsOn(compileDebugJavaWithJavac)
-  dependsOn(compileDebugKotlin)
+  //dependsOn(compileDebugJavaWithJavac)
+  //dependsOn(compileDebugKotlin)
+  //dependsOn(nexus5api27DebugAndroidTest)
+  //dependsOn(pixel3api30DebugAndroidTest)
 
   reports {
     xml.getRequired().set(true)
@@ -89,17 +122,33 @@ tasks.register('jacocoTestReport', JacocoReport) {
   def mainSrc = "${project.projectDir}/src/main/java"
 
   //java compiled classes
-  def javaTree = fileTree(dir: "$project.buildDir/intermediates/javac/debug/classes", excludes: fileFilter)
+  def javaTree = fileTree(dir: "$project.projectDir/build/intermediates/javac/debug/classes", excludes: fileFilter)
   //kotlin compiled classes
-  def kotlinTree = fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
+  def kotlinTree = fileTree(dir: "$project.projectDir/build/tmp/kotlin-classes/debug", excludes: fileFilter)
 
+/*
+  def releaseKotlinClasses = fileTree(dir: "$project.projectDir/build/tmp/kotlin-classes/release", excludes: fileFilter)
+  def debugKotlinClasses = fileTree(dir: "$project.projectDir/build/tmp/kotlin-classes/debug")
+  def releaseJavaClasses = fileTree(dir: "$project.projectDir/build/intermediates/javac/release", excludes: fileFilter)
+  def debugJavaClasses = fileTree(dir: "$project.projectDir/build/intermediates/javac/debug")
+
+  def mainClasses = releaseKotlinClasses + debugKotlinClasses
+  def javaClasses = releaseJavaClasses + debugJavaClasses
+
+  sourceDirectories.from = files([mainSrc])
+  classDirectories.from = files([mainClasses, javaClasses])
+  executionData.from = fileTree(dir: "$project.projectDir/build", include: [
+      "jacoco/testReleaseUnitTest.exec",
+      "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"])
+  */
 
   sourceDirectories.setFrom(files([mainSrc]))
   classDirectories.from = files([javaTree, kotlinTree])
-  executionData.setFrom(fileTree(dir: "$buildDir", includes: [
+  executionData.setFrom(fileTree(dir: "$projectDir/build", includes: [
       "jacoco/testReleaseUnitTest.exec",
       "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
-      "outputs/code_coverage/debugAndroidTest/connected/**/coverage.ec",
+     // "outputs/managed_device_code_coverage/**/coverage.ec",
+     // "outputs/code_coverage/debugAndroidTest/connected/**/coverage.ec",
   ]))
 }
 
@@ -115,8 +164,43 @@ dependencies {
   implementation 'androidx.legacy:legacy-support-v4:1.0.0'
   implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.1'
   implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
-  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+
+  // Required -- JUnit 4 framework
+  testImplementation "junit:junit:$jUnitVersion"
+  testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  // If using JUnit Jupiter
+  //testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+  //testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+
+  //testRuntimeOnly("org.jacoco:org.jacoco.core:0.8.11")
+
+
+
+  // Optional -- Robolectric environment
+//  testImplementation "androidx.test:core:$androidXTestVersion"
+  // Optional -- Mockito framework
+  testImplementation "org.mockito:mockito-core:$mockitoVersion"
+  testImplementation "org.awaitility:awaitility:4.2.0"
+  // Optional -- mockito-kotlin
+//  testImplementation "org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion"
+  // Optional -- Mockk framework
+//  testImplementation "io.mockk:mockk:$mockkVersion"
+
+  testImplementation 'androidx.test.ext:junit-ktx:1.1.5'
+//  testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+//  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+
+  androidTestImplementation 'com.github.tmurakami:dexopener:2.0.5'
   androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-  androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+//  androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+  androidTestImplementation 'androidx.test:runner:1.5.2'
+//  androidTestImplementation 'androidx.test:rules:1.5.0'
+  // androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1'
+  // androidTestImplementation "io.mockk:mockk-android:$mockkVersion"
+  // androidTestImplementation "io.mockk:mockk-agent:$mockkVersion"
+  // androidTestImplementation 'io.insert-koin:koin-test-junit4:3.0.2'
+
+  // debugImplementation "androidx.fragment:fragment-testing:$fragmentTestingVersion"
 }
