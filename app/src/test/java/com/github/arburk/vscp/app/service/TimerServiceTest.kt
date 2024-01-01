@@ -1,40 +1,38 @@
 package com.github.arburk.vscp.app.service
 
+
 import android.content.SharedPreferences
 import com.github.arburk.vscp.app.settings.pref_key_min_per_round
 import com.github.arburk.vscp.app.settings.pref_key_min_per_warning
 import org.awaitility.Awaitility.await
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.BDDMockito.anyString
 import org.mockito.BDDMockito.given
 import org.mockito.Matchers.eq
-import org.mockito.Mock
-import org.mockito.runners.MockitoJUnitRunner
+import org.mockito.Mockito
 import java.time.Duration
 
-@RunWith(MockitoJUnitRunner::class)
 class TimerServiceTest {
 
-  @Mock
   private lateinit var mockSharedPreferences: SharedPreferences
 
   private lateinit var testee: TimerService
 
-  @Before
+  @BeforeEach
   fun setUp() {
+    mockSharedPreferences = Mockito.mock(SharedPreferences::class.java)
     testee = TimerService().apply {
       sharedPreferences = mockSharedPreferences
     }
   }
 
-  @After
+  @AfterEach
   fun tearDown() {
     testee.onDestroy()
   }
@@ -75,7 +73,7 @@ class TimerServiceTest {
 
     testee.onCreate()
 
-    assertEquals("Expected default of 12 minutes", "12:00", testee.getTimeLeft())
+    assertEquals( "12:00", testee.getTimeLeft(), "Expected default of 12 minutes",)
 
     given(mockSharedPreferences.getString(eq(pref_key_min_per_round), anyString()))
       .willReturn("2")

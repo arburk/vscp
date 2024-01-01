@@ -1,34 +1,34 @@
 package com.github.arburk.vscp.app.model
 
-import junit.framework.TestCase.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 
 class BlindTest {
   @Test
   fun getBig() {
-    assertEquals(0, Blind(0).getBig())
-    assertEquals(2, Blind(1).getBig())
-    assertEquals(4, Blind(2).getBig())
-    assertEquals(6, Blind(3).getBig())
-    assertEquals(200, Blind(100).getBig())
+    Assertions.assertEquals(0, Blind(0).getBig())
+    Assertions.assertEquals(2, Blind(1).getBig())
+    Assertions.assertEquals(4, Blind(2).getBig())
+    Assertions.assertEquals(6, Blind(3).getBig())
+    Assertions.assertEquals(200, Blind(100).getBig())
   }
 
   @Test
   fun getBig_NegativeTurnsPositive() {
-    assertEquals(2, Blind(-1).also { assertEquals(1, it.small) }.getBig())
-    assertEquals(4, Blind(-2).also { assertEquals(2, it.small) }.getBig())
-    assertEquals(6, Blind(-3).also { assertEquals(3, it.small) }.getBig())
-    assertEquals(200, Blind(-100).also { assertEquals(100, it.small) }.getBig())
+    Assertions.assertEquals(2, Blind(-1).also { Assertions.assertEquals(1, it.small) }.getBig())
+    Assertions.assertEquals(4, Blind(-2).also { Assertions.assertEquals(2, it.small) }.getBig())
+    Assertions.assertEquals(6, Blind(-3).also { Assertions.assertEquals(3, it.small) }.getBig())
+    Assertions.assertEquals(200, Blind(-100).also { Assertions.assertEquals(100, it.small) }.getBig())
   }
 
   @Test
   fun getBigAsString() {
-    assertEquals("0", Blind(0).getBigAsString())
-    assertEquals("2", Blind(1).getBigAsString())
-    assertEquals("4", Blind(2).getBigAsString())
-    assertEquals("6", Blind(3).getBigAsString())
-    assertEquals("200", Blind(100).getBigAsString())
+    Assertions.assertEquals("0", Blind(0).getBigAsString())
+    Assertions.assertEquals("2", Blind(1).getBigAsString())
+    Assertions.assertEquals("4", Blind(2).getBigAsString())
+    Assertions.assertEquals("6", Blind(3).getBigAsString())
+    Assertions.assertEquals("200", Blind(100).getBigAsString())
   }
 }
 
