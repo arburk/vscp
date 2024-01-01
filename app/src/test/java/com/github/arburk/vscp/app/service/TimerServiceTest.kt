@@ -12,9 +12,10 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.BDDMockito.anyString
 import org.mockito.BDDMockito.given
-import org.mockito.Matchers.eq
+
 import org.mockito.Mockito
 import java.time.Duration
 
