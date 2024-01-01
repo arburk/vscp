@@ -4,11 +4,28 @@ on: [push]
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md
+    env:
+      JAVA_TOOL_OPTIONS: -Xmx4g
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Check if PR exists or branch is main
+      id: check_pr
+      run: |
+        branch_name=$(echo ${GITHUB_REF#refs/heads/})
+        prs=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${branch_name}")
+        pr_exists_or_main_branch=0
+        if [ $branch_name != 'main' && $(echo "$prs" | jq length) -eq 0 ]; then
+          echo "Skip instrumented tests (no open PR found for branch $branch_name and not main branch)"
+        else
+          echo "Do perform instrumented tests"
+          pr_exists_or_main_branch=1
+        fi
+        echo "pr_exists_or_main_branch=$pr_exists_or_main_branch"
+        echo "pr_exists_or_main_branch=$pr_exists_or_main_branch" >> "$GITHUB_OUTPUT"
+
+    - name: checkout source
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
@@ -25,6 +42,7 @@ jobs:
         path: ~/.sonar/cache
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
+
     - name: Cache Gradle packages
       uses: actions/cache@v3
       with:
@@ -36,17 +54,40 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./gradlew clean build jacocoTestReport
+      run: ./gradlew clean build
+
+    - name: SDKs - accept licenses
+      if: steps.check_pr.outputs.pr_exists_or_main_branch != 0
+      run: /bin/bash -c "yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null"
+
+    - name: Enable KVM group perms
+      if: steps.check_pr.outputs.pr_exists_or_main_branch != 0
+      # https://github.blog/changelog/2023-02-23-hardware-accelerated-android-virtualization-on-actions-windows-and-linux-larger-hosted-runners/
+      # Starting on February 23, 2023, Actions users of GitHub-hosted larger Linux runners will be able to make use of hardware acceleration for Android testing
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - name: Perfom instrumented tests
+      id: perform-it
+      continue-on-error: true
+      if: steps.check_pr.outputs.pr_exists_or_main_branch != 0
+      run: ./gradlew supportedSdksGroupDebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" -Pandroid.experimental.testOptions.managedDevices.emulators.emulator.showKernelLogging=true --info
 
     - name: Sonar checks
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: ./gradlew sonar
+      run: ./gradlew jacocoTestReport sonar
 
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Reports
         path: ${{ github.workspace }}/app/build/reports/
         retention-days: 14
+
+    - name: Check on CI failure
+      if: steps.perform-it.outcome != 'success'
+      run: exit 1

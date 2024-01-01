@@ -66,11 +66,6 @@ android {
 
     managedDevices {
       devices {
-        nexus5api26(com.android.build.api.dsl.ManagedVirtualDevice) {
-          device = "Nexus 5"
-          apiLevel = 26
-          systemImageSource = "aosp"
-        }
         nexus5api27 (com.android.build.api.dsl.ManagedVirtualDevice) {
           device = "Nexus 5"
           apiLevel = 27
@@ -96,7 +91,6 @@ android {
       }
       groups {
         supportedSdks {
-          targetDevices.add(devices.nexus5api26)
           targetDevices.add(devices.nexus5api27)
           targetDevices.add(devices.nexus5api28)
           targetDevices.add(devices.pixel3api30)
