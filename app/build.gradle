@@ -93,8 +93,8 @@ android {
         supportedSdks {
           targetDevices.add(devices.nexus5api27)
           targetDevices.add(devices.nexus5api28)
-          targetDevices.add(devices.pixel3api30)
-          targetDevices.add(devices.pixel6api33)
+          //targetDevices.add(devices.pixel3api30)
+          //targetDevices.add(devices.pixel6api33)
         }
       }
     }
