@@ -1,5 +1,7 @@
 package com.github.arburk.vscp.app.activity
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +15,7 @@ import com.github.arburk.vscp.app.MainActivity
 import com.github.arburk.vscp.app.R
 import com.github.arburk.vscp.app.databinding.TimerBinding
 import com.github.arburk.vscp.app.model.Blind
+import com.github.arburk.vscp.app.service.NotificationManagerWrapper
 import com.github.arburk.vscp.app.service.TimerService
 
 class PokerTimer : Fragment() {
@@ -28,7 +31,19 @@ class PokerTimer : Fragment() {
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
     _binding = TimerBinding.inflate(inflater, container, false)
     timerService = (activity as MainActivity).timerService
+    launchPermissionActivity()
     return binding.root
+  }
+
+  private fun launchPermissionActivity() {
+    NotificationManagerWrapper().also {nmw ->
+      (this.requireActivity() as MainActivity).also { activity ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && nmw.isLackOfNotificationPermission(activity)) {
+          nmw.createNotificationChannel(activity)
+          activity.permissionActivity.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+      }
+    }
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
