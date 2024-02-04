@@ -102,7 +102,7 @@ jobs:
           arch: x86_64
           channel: canary
           force-avd-creation: false
-          emulator-boot-timeout: 300
+          emulator-boot-timeout: 450
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -logcat-output ${{ github.workspace }}/app/build/reports/avd${{ matrix.api-level }}.log
           disable-animations: true
           script: echo "Generated AVD ${{ matrix.api-level }} snapshot for caching."
