@@ -1,6 +1,8 @@
 name: Instrumented Tests
 
-on: [push]
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
 
 jobs:
   build:
@@ -15,31 +17,12 @@ jobs:
       JAVA_TOOL_OPTIONS: -Xmx4g
 
     steps:
-      - name: Check if PR exists or branch is main
-        id: check_pr
-        run: |
-          branch_name="$(echo "${{ github.ref }}" | sed 's/refs\/heads\///' | sed 's/#/%23/')"
-          giturl="https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:$branch_name"
-          echo "check for PR or main branch using API: $giturl"
-          prs=$(curl -s -X GET -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" $giturl)
-          if [ $branch_name != 'main' ] && [ $(echo "$prs" | jq length) -eq 0 ]; then
-            message_summary="Skip instrumented tests (no open PR found for branch $branch_name and not main branch)"
-            echo "$message_summary"
-            echo "$message_summary" >> $GITHUB_STEP_SUMMARY
-            echo "PERFORM_TEST=0" >> "$GITHUB_OUTPUT"
-          else
-            echo "Do perform instrumented tests"
-            echo "PERFORM_TEST=1" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: checkout source
-        if: steps.check_pr.outputs.PERFORM_TEST != 0
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: set up JDK 17
-        if: steps.check_pr.outputs.PERFORM_TEST != 0
         uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -47,7 +30,6 @@ jobs:
           cache: gradle
 
       - name: Cache Gradle packages
-        if: steps.check_pr.outputs.PERFORM_TEST != 0
         uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
@@ -55,15 +37,12 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Grant execute permission for gradlew
-        if: steps.check_pr.outputs.PERFORM_TEST != 0
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        if: steps.check_pr.outputs.PERFORM_TEST != 0
         uses: gradle/gradle-build-action@v3
 
       - name: Enable KVM group perms
-        if: steps.check_pr.outputs.PERFORM_TEST != 0
         # https://github.blog/changelog/2023-02-23-hardware-accelerated-android-virtualization-on-actions-windows-and-linux-larger-hosted-runners/
         # Starting on February 23, 2023, Actions users of GitHub-hosted larger Linux runners will be able to make use of hardware acceleration for Android testing
         run: |
@@ -72,7 +51,6 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Determine emulator target
-        if: steps.check_pr.outputs.PERFORM_TEST != 0
         id: determine-target
         run: |
           TARGET="google_apis"
@@ -94,7 +72,6 @@ jobs:
 #          key: avd-ubuntu-${{ matrix.api-level }}
 
       - name: Perfom instrumented tests
-        if: steps.check_pr.outputs.PERFORM_TEST != 0
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
