@@ -83,15 +83,15 @@ jobs:
           fi
           echo "TARGET=$TARGET" >> "$GITHUB_OUTPUT"
 
-      - name: AVD cache
-        if: steps.check_pr.outputs.PERFORM_TEST != 0
-        uses: actions/cache@v4
-        id: avd-cache
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-ubuntu-${{ matrix.api-level }}
+#      - name: AVD cache
+#        if: steps.check_pr.outputs.PERFORM_TEST != 0
+#        uses: actions/cache@v4
+#        id: avd-cache
+#        with:
+#          path: |
+#            ~/.android/avd/*
+#            ~/.android/adb*
+#          key: avd-ubuntu-${{ matrix.api-level }}
 
       - name: Perfom instrumented tests
         if: steps.check_pr.outputs.PERFORM_TEST != 0
