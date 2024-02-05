@@ -9,7 +9,7 @@ ext {
   androidXTestVersion = "1.5.0"
   mockitoKotlinVersion = "5.2.1"
   jUnitVersion = "4.13.2"
-  mockitoVersion = "1.10.19"
+  mockitoVersion = "5.8.0"
   mockkVersion = '1.13.8'
   junitJupiterVersion = '5.10.1'
   fragmentTestingVersion = '1.6.2'

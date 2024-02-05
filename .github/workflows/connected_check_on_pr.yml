@@ -1,10 +1,18 @@
-name: Android CI
+name: Instrumented Tests
 
-on: [push]
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
 
 jobs:
   build:
     runs-on: ubuntu-latest # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md
+    timeout-minutes: 60
+    strategy:
+      # Allow tests to continue on other devices if they fail on one device.
+      fail-fast: false
+      matrix:
+        api-level: [ 27, 28, 29, 30, 31, 32, 33, 34 ]
     env:
       JAVA_TOOL_OPTIONS: -Xmx4g
 
@@ -21,13 +29,6 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
@@ -39,7 +40,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew clean build
+        uses: gradle/gradle-build-action@v3
 
       - name: Enable KVM group perms
         # https://github.blog/changelog/2023-02-23-hardware-accelerated-android-virtualization-on-actions-windows-and-linux-larger-hosted-runners/
@@ -49,29 +50,46 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Perform instrumented API Level 33 Test
+      - name: Determine emulator target
+        id: determine-target
+        run: |
+          TARGET="google_apis"
+          if [[ ${{ matrix.api-level }} -ge 30 ]]; then
+            TARGET="aosp_atd"
+          elif [[ ${{ matrix.api-level }} -le 27 ]]; then
+            TARGET="default"
+          fi
+          echo "TARGET=$TARGET" >> "$GITHUB_OUTPUT"
+
+#      - name: AVD cache
+#        if: steps.check_pr.outputs.PERFORM_TEST != 0
+#        uses: actions/cache@v4
+#        id: avd-cache
+#        with:
+#          path: |
+#            ~/.android/avd/*
+#            ~/.android/adb*
+#          key: avd-ubuntu-${{ matrix.api-level }}
+
+      - name: Perfom instrumented tests
         uses: reactivecircus/android-emulator-runner@v2
-        id: perform-it
-        continue-on-error: true
-        with:  # run ``sdkmanager --list`` to see available images
-          api-level: 33
-          target: aosp_atd
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ steps.determine-target.outputs.TARGET }}
           arch: x86_64
           channel: canary
+          force-avd-creation: false
           emulator-boot-timeout: 300
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -logcat-output ${{ github.workspace }}/app/build/reports/avd33.log
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -logcat-output ${{ github.workspace }}/app/build/reports/avd${{ matrix.api-level }}.log
           disable-animations: true
           script: ./gradlew connectedCheck
 
-      - name: Sonar checks
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew jacocoTestReport sonar
-
       - name: Upload test results
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: Reports
-          path: ${{ github.workspace }}/app/build/reports/
+          name: test-results-${{ matrix.api-level }}-${{ steps.determine-target.outputs.TARGET }}
+          path: |
+            **/build/reports/*
+            **/build/outputs/*/connected/*
           retention-days: 14

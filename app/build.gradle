@@ -3,6 +3,7 @@ plugins {
   id 'org.jetbrains.kotlin.android'
   id 'jacoco'
   id "org.sonarqube" version "4.2.1.3168"
+  id("de.mannodermaus.android-junit5") version "1.10.0.0"
 }
 
 android {
@@ -16,8 +17,10 @@ android {
     versionCode 1
     versionName "1.0"
 
-    //testInstrumentationRunner "com.github.arburk.vscp.app.AndroidJunitRunnerWithDexOpener"
-    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    // Make sure to use the AndroidJUnitRunner (or a sub-class) in order to hook in the JUnit 5 Test Builder
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    testInstrumentationRunnerArguments["runnerBuilder"] = "de.mannodermaus.junit5.AndroidJUnit5Builder"
+    testInstrumentationRunnerArguments["configurationParameters"] = "junit.jupiter.execution.parallel.enabled=true,junit.jupiter.execution.parallel.mode.default=concurrent"
   }
 
   buildTypes {
@@ -68,11 +71,30 @@ android {
           apiLevel = 27
           systemImageSource = "aosp"
         }
+        nexus5api28(com.android.build.api.dsl.ManagedVirtualDevice) {
+          device = "Nexus 5"
+          apiLevel = 28
+          systemImageSource = "aosp"
+        }
         pixel3api30(com.android.build.api.dsl.ManagedVirtualDevice) {
           device = "Pixel 3"
           apiLevel = 30
           // Also use the AOSP Automated Test Device image for better emulator performance
           systemImageSource = "aosp-atd"
+        }
+        pixel6api33(com.android.build.api.dsl.ManagedVirtualDevice) {
+          device = "Pixel 6"
+          apiLevel = 33
+          // Also use the AOSP Automated Test Device image for better emulator performance
+          systemImageSource = "aosp-atd"
+        }
+      }
+      groups {
+        supportedSdks {
+          //targetDevices.add(devices.nexus5api27)
+          targetDevices.add(devices.nexus5api28)
+          //targetDevices.add(devices.pixel3api30)
+          //targetDevices.add(devices.pixel6api33)
         }
       }
     }
@@ -107,11 +129,6 @@ jacoco {
 
 tasks.register('jacocoTestReport', JacocoReport) {
   dependsOn(testDebugUnitTest)
-  dependsOn(testReleaseUnitTest)
-  //dependsOn(compileDebugJavaWithJavac)
-  //dependsOn(compileDebugKotlin)
-  //dependsOn(nexus5api27DebugAndroidTest)
-  //dependsOn(pixel3api30DebugAndroidTest)
 
   reports {
     xml.getRequired().set(true)
@@ -127,7 +144,7 @@ tasks.register('jacocoTestReport', JacocoReport) {
   executionData.setFrom(fileTree(dir: "$projectDir/build", includes: [
       "jacoco/testReleaseUnitTest.exec",
       "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
-     // "outputs/managed_device_code_coverage/**/coverage.ec",
+      "outputs/managed_device_code_coverage/**/coverage.ec",
      // "outputs/code_coverage/debugAndroidTest/connected/**/coverage.ec",
   ]))
 }
@@ -154,16 +171,18 @@ dependencies {
   // Optional -- Robolectric environment
   //  testImplementation "androidx.test:core:$androidXTestVersion"
 
-  // Optional -- mockito-kotlin
-  //  testImplementation "org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion"
-  // Optional -- Mockk framework
-  //  testImplementation "io.mockk:mockk:$mockkVersion"
-
   testImplementation 'androidx.test.ext:junit-ktx:1.1.5'
+
   androidTestImplementation 'com.github.tmurakami:dexopener:2.0.5'
-  androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-  // androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-  androidTestImplementation 'androidx.test:runner:1.5.2'
+  // Android Instrumentation Tests wth JUnit 5
+  androidTestImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+  androidTestImplementation "org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion"
+  androidTestImplementation "de.mannodermaus.junit5:android-test-core:1.4.0"
+  androidTestRuntimeOnly "de.mannodermaus.junit5:android-test-runner:1.4.0"
+  androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+
+  //androidTestImplementation 'androidx.test:runner:1.5.2'
   // androidTestImplementation 'androidx.test:rules:1.5.0'
   // androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1'
   // androidTestImplementation "io.mockk:mockk-android:$mockkVersion"
