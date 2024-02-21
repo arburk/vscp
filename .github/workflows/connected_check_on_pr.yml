@@ -3,6 +3,10 @@ name: Instrumented Tests
 on:
   pull_request:
     types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - 'main'
+
 
 jobs:
   build:
@@ -61,6 +65,7 @@ jobs:
           fi
           echo "TARGET=$TARGET" >> "$GITHUB_OUTPUT"
 
+## Disable cache since it breaks the tests
 #      - name: AVD cache
 #        if: steps.check_pr.outputs.PERFORM_TEST != 0
 #        uses: actions/cache@v4
@@ -71,7 +76,7 @@ jobs:
 #            ~/.android/adb*
 #          key: avd-ubuntu-${{ matrix.api-level }}
 
-      - name: Perfom instrumented tests
+      - name: Perform instrumented tests  # see https://github.com/marketplace/actions/android-emulator-runner
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
