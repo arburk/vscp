@@ -143,16 +143,18 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
         }
       }
 
-      4 -> RingtoneManager.getRingtone(this@TimerService, getFightCountdownUri()).play()
+      6 -> RingtoneManager.getRingtone(this@TimerService, getFightCountdownUri()).play()
 
-      61 -> RingtoneManager.getRingtone(this@TimerService, getOneMinuteWarnungUri()).play()
+      62 -> RingtoneManager.getRingtone(this@TimerService, getOneMinuteWarnungUri()).play()
     }
     remainingSeconds--
     updateViewModels()
     Log.v("TimerService", "remainingSeconds: $remainingSeconds")
   }
 
-  private fun getOneMinuteWarnungUri() = PreferenceManagerWrapper.getWarningNotificationSound(this@TimerService)
+  private fun getOneMinuteWarnungUri() =
+    //PreferenceManagerWrapper.getWarningNotificationSound(this@TimerService)
+    Uri.parse("android.resource://" + applicationContext.packageName + "/" + R.raw.one_minute_warning)
 
   private fun getFightCountdownUri(): Uri? =
     Uri.parse("android.resource://" + applicationContext.packageName + "/" + R.raw.countdown_fight)
@@ -273,6 +275,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     Blind(75),
     Blind(100),
     Blind(150),
+    Blind(200),
     Blind(300),
     Blind(400),
     Blind(600),
