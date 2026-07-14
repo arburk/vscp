@@ -12,9 +12,9 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
-import android.os.HandlerThread
+import android.os.Handler
 import android.os.IBinder
-import android.os.Process.THREAD_PRIORITY_FOREGROUND
+import android.os.Looper
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.core.app.ActivityCompat
@@ -42,44 +42,30 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   private val binder = TimerServiceBinder()
 
   @VisibleForTesting
+  @Volatile
   internal var currentRound: Int = 0
 
-  private var running = false
-  private var remainingSeconds = -1
+  @Volatile private var running = false
+  @Volatile private var remainingSeconds = -1
+  @Volatile private var viewModels: List<PokerTimerViewModel> = emptyList()
+
   private val timer = Timer()
   private var timerTask: TimerTask? = null
-
-  private var viewModels: List<PokerTimerViewModel> = arrayListOf()
-  private val timerServiceThread: HandlerThread =
-    HandlerThread(TimerService::class.simpleName, THREAD_PRIORITY_FOREGROUND)
+  private val mainHandler = Handler(Looper.getMainLooper())
 
   inner class TimerServiceBinder : Binder() {
     fun getService(): TimerService = this@TimerService
   }
 
-  /**
-   * The system invokes this method by calling bindService() when another component wants to bind
-   * with the service (such as to perform RPC). In your implementation of this method, you must
-   * provide an interface that clients use to communicate with the service by returning an IBinder.
-   * You must always implement this method; however, if you don't want to allow binding,
-   * you should return null.
-   */
-  override fun onBind(intent: Intent?): IBinder {
-    return binder
-  }
+  override fun onBind(intent: Intent?): IBinder = binder
 
   override fun onCreate() {
-    // Start up the thread running the service. Note that we create a
-    // separate thread because the service normally runs in the process's
-    // main thread, which we don't want to block.  We also make it
-    // background priority so CPU-intensive work will not disrupt our UI.
     initConfig()
-    timerServiceThread.start()
   }
 
   override fun onDestroy() {
     super.onDestroy()
-    timerServiceThread.quit()
+    timer.cancel()
   }
 
   private fun initConfig() {
@@ -88,8 +74,6 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
       val minPerRound = getString(pref_key_min_per_round, "12")!!.toInt()
       val minutePerWarning = getString(pref_key_min_per_warning, "1")!!.toInt()
       config = ConfigModel(minPerRound, minutePerWarning, readBlindConfigFromDevice())
-
-      // TODO: init vscpConfig from saved state if available
       resetTimer()
       Log.v("TimerService", "initConfig conducted $config")
     }
@@ -104,19 +88,13 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
 
   fun getCurrentBlind(): Blind = config.rounds[currentRound]
 
-  fun getRounds(): Array<Blind> = config.rounds
+  fun getRounds(): List<Blind> = config.rounds
 
-  fun getTimeLeft(): String = String.format("%02d:%02d", remainingSeconds / 60, this.remainingSeconds % 60)
+  fun getTimeLeft(): String = String.format("%02d:%02d", remainingSeconds / 60, remainingSeconds % 60)
 
   fun isRunning(): Boolean = running
 
-  fun getRoundsAsPokerTimerModel(): List<PokerTimerViewModel> {
-    return config.rounds.map {
-      PokerTimerViewModel().apply { initBlind(it) }
-    }
-  }
-
-  fun setRounds(rounds: Array<Blind>) {
+  fun setRounds(rounds: List<Blind>) {
     config.rounds = rounds
     updateViewModels()
   }
@@ -142,48 +120,41 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
           processNextRoundNotification()
         }
       }
-
-      6 -> RingtoneManager.getRingtone(this@TimerService, getFightCountdownUri()).play()
-
-      62 -> RingtoneManager.getRingtone(this@TimerService, getOneMinuteWarnungUri()).play()
+      6 -> mainHandler.post {
+        RingtoneManager.getRingtone(this@TimerService, getFightCountdownUri()).play()
+      }
+      62 -> mainHandler.post {
+        RingtoneManager.getRingtone(this@TimerService, getOneMinuteWarningUri()).play()
+      }
     }
     remainingSeconds--
     updateViewModels()
     Log.v("TimerService", "remainingSeconds: $remainingSeconds")
   }
 
-  private fun getOneMinuteWarnungUri() =
-    //PreferenceManagerWrapper.getWarningNotificationSound(this@TimerService)
+  private fun getOneMinuteWarningUri(): Uri =
     Uri.parse("android.resource://" + applicationContext.packageName + "/" + R.raw.one_minute_warning)
 
-  private fun getFightCountdownUri(): Uri? =
+  private fun getFightCountdownUri(): Uri =
     Uri.parse("android.resource://" + applicationContext.packageName + "/" + R.raw.countdown_fight)
 
   private fun processNextRoundNotification() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val notifyMgr = NotificationManagerCompat.from(this)
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        // check permissions to prevent exception to not yet opted in by user
-        notifyMgr.apply {
-          ActivityCompat.checkSelfPermission(this@TimerService, Manifest.permission.POST_NOTIFICATIONS)
-            .also {
-              if (it != PackageManager.PERMISSION_GRANTED) {
-                Log.v("TimerService", "Skip notification due to missing permissions")
-                return
-              }
-            }
+        if (ActivityCompat.checkSelfPermission(this@TimerService, Manifest.permission.POST_NOTIFICATIONS)
+          != PackageManager.PERMISSION_GRANTED
+        ) {
+          Log.v("TimerService", "Skip notification due to missing permissions")
+          return
         }
       }
       notificationNextRound().also { notifyMgr.notify(it.hashCode(), it) }
-      // TODO: why is notification channel not playing sound?
-
       return
     }
 
-    // handle lagacy versions
     notificationNextRound().also {
-      (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
-        .notify(it.hashCode(), it)
+      (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(it.hashCode(), it)
     }
   }
 
@@ -193,20 +164,10 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
       .setContentText("${getCurrentBlind().small} / ${getCurrentBlind().getBig()}")
       .setPriority(NotificationCompat.PRIORITY_HIGH)
       .setTimeoutAfter(config.minPerRound * 60L * 1000)
-      .setSmallIcon(R.mipmap.icon_webp) // TODO: add proper icon, see also  issue #10
-
-      /**
-       * TODO: apply on channel to set proper sound
-       *
-       * On platforms Build.VERSION_CODES.O and above this value is ignored in favor of the value set
-       * on the notification's channel. On older platforms, this value is still used, so it is still
-       * required for apps supporting those platforms.
-       */
+      .setSmallIcon(R.mipmap.icon_webp)
       .setSound(PreferenceManagerWrapper.getChannelNotificationSound(this))
       .setDefaults(Notification.DEFAULT_VIBRATE)
       .setVibrate(LongArray(1) { 500L })
-      // TODO: Fix issue with correct timer handling
-      // .setContentIntent(pendingIntentTimer)
       .build()
 
   fun pauseTimer() {
@@ -232,44 +193,35 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   fun jumpLevel(i: Int) {
     Log.v("TimerService", "called jumpLevel for $i")
     val newLevel = currentRound + i
-    if (newLevel < 0 || newLevel >= config.rounds.size) {
-      return
-    }
-
+    if (newLevel < 0 || newLevel >= config.rounds.size) return
     currentRound = newLevel
     resetTimerTaskToMaxTime()
   }
 
-  override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
-    Log.v("TimerService", "called MyListener#onSharedPreferenceChanged for $sharedPreferences")
+  override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
+    key ?: return
+    Log.v("TimerService", "called MyListener#onSharedPreferenceChanged for key=$key")
 
     when (key) {
       pref_key_min_per_round -> {
-        config.minPerRound =
-          sharedPreferences.getString(pref_key_min_per_round, config.minPerRound.toString())!!.toInt().also {
-            //recalculate remaining time
-            if (it > config.minPerRound) {
-              remainingSeconds += (it - config.minPerRound) * 60
-            } else {
-              remainingSeconds = it * 60
-            }
-          }
+        val newMinPerRound = sharedPreferences.getString(pref_key_min_per_round, config.minPerRound.toString())!!.toInt()
+        val oldMinPerRound = config.minPerRound
+        config.minPerRound = newMinPerRound
+        remainingSeconds = if (newMinPerRound > oldMinPerRound) {
+          remainingSeconds + (newMinPerRound - oldMinPerRound) * 60
+        } else {
+          newMinPerRound * 60
+        }
       }
-
       pref_key_min_per_warning -> config.minPerWarning =
         sharedPreferences.getString(pref_key_min_per_warning, config.minPerWarning.toString())!!.toInt()
-
       else -> Log.i("TimerService", "unknown key[$key] detected in onSharedPreferenceChanged")
     }
-    //TODO: save the changes?
     updateViewModels()
     Log.v("TimerService", "onSharedPreferenceChanged changed config $config")
   }
 
-  /**
-   * TODO: read it from file before if available, return default if not found
-   */
-  private fun readBlindConfigFromDevice() = arrayOf(
+  private fun readBlindConfigFromDevice(): List<Blind> = listOf(
     Blind(25),
     Blind(50),
     Blind(75),
@@ -283,33 +235,26 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     Blind(1000)
   )
 
-  fun updateBlind(oldSmallValue: Int, newSmallValue: Int) {
-    Log.v("TimerService", "change $oldSmallValue to $newSmallValue")
-    val blind2change = getRounds().firstOrNull { it.small == oldSmallValue }
-    Log.v("TimerService", "blind o change $blind2change")
-    if (blind2change != null) {
-      blind2change.small = newSmallValue
-      updateViewModels()
+  fun updateBlind(index: Int, newSmallValue: Int) {
+    Log.v("TimerService", "updateBlind at index $index to $newSmallValue")
+    if (index < 0 || index >= config.rounds.size) return
+    config.rounds = config.rounds.toMutableList().also { it[index] = Blind(maxOf(1, newSmallValue)) }
+    updateViewModels()
+  }
+
+  fun registerViewModel(viewModelToAdd: PokerTimerViewModel) {
+    if (!viewModels.contains(viewModelToAdd)) {
+      viewModels = viewModels + viewModelToAdd.also { it.initData(this) }
+      Log.v("TimerService", "registered new viewModel $viewModelToAdd")
     }
   }
 
-  fun registerViewModel(viewModel2Add: PokerTimerViewModel) {
-    if (!viewModels.contains(viewModel2Add)) {
-      viewModels = viewModels.plus(viewModel2Add.also { viewModel2Add.initData(this) })
-      Log.v("TimerService", "registered new viewModel $viewModel2Add")
-    }
-  }
-
-  fun unregisterViewModel(viewModel2Add: PokerTimerViewModel) {
-    if (viewModels.contains(viewModel2Add)) {
-      viewModels.indexOf(viewModel2Add).also { viewModels = viewModels.drop(it) }
-    }
+  fun unregisterViewModel(viewModelToRemove: PokerTimerViewModel) {
+    viewModels = viewModels.filter { it != viewModelToRemove }
   }
 
   private fun updateViewModels() {
     Log.v("TimerService", "updateViewModels triggered")
-    viewModels.forEach {
-      it.update(this)
-    }
+    viewModels.forEach { it.update(this) }
   }
 }
