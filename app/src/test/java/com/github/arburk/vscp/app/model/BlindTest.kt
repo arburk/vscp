@@ -2,6 +2,7 @@ package com.github.arburk.vscp.app.model
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 
 class BlindTest {
@@ -15,11 +16,10 @@ class BlindTest {
   }
 
   @Test
-  fun getBig_NegativeTurnsPositive() {
-    Assertions.assertEquals(2, Blind(-1).also { Assertions.assertEquals(1, it.small) }.getBig())
-    Assertions.assertEquals(4, Blind(-2).also { Assertions.assertEquals(2, it.small) }.getBig())
-    Assertions.assertEquals(6, Blind(-3).also { Assertions.assertEquals(3, it.small) }.getBig())
-    Assertions.assertEquals(200, Blind(-100).also { Assertions.assertEquals(100, it.small) }.getBig())
+  fun getBig_NegativeIsRejected() {
+    assertThrows<IllegalArgumentException> { Blind(-1) }
+    assertThrows<IllegalArgumentException> { Blind(-2) }
+    assertThrows<IllegalArgumentException> { Blind(-100) }
   }
 
   @Test
