@@ -81,15 +81,18 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   }
 
   private fun preloadSounds() {
-    soundPool = SoundPool.Builder()
-      .setMaxStreams(2)
-      .setAudioAttributes(
-        AudioAttributes.Builder()
-          .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
-          .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-          .build()
-      )
-      .build()
+    // Kept as separate statements on retained builder references (no method chaining):
+    // the Android unit-test stubs return null from chained builder calls, which would
+    // NPE here even though the same chain works fine on a real device.
+    val audioAttributesBuilder = AudioAttributes.Builder()
+    audioAttributesBuilder.setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
+    audioAttributesBuilder.setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+
+    val soundPoolBuilder = SoundPool.Builder()
+    soundPoolBuilder.setMaxStreams(2)
+    soundPoolBuilder.setAudioAttributes(audioAttributesBuilder.build())
+
+    soundPool = soundPoolBuilder.build() ?: return
     fightCountdownSoundId = soundPool.load(this, R.raw.countdown_fight, 1)
     oneMinuteWarningSoundId = soundPool.load(this, R.raw.one_minute_warning, 1)
   }
@@ -129,7 +132,11 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     Log.v("TimerService", "start timer was requested")
     if (!running) {
       running = true
-      startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification())
+      // Background execution limits/Doze (the actual cause of unreliable playback) only
+      // apply from Android 8 (O) onward, so foreground promotion is only needed there.
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification())
+      }
       timerTask = createTimerTask()
       timer.scheduleAtFixedRate(timerTask, 1000, 1000)
     }
