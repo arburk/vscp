@@ -29,25 +29,32 @@ class RoundSettingsListViewAdapter(
 
   override fun getItem(position: Int): Blind = rounds[position]
 
-  override fun getItemId(position: Int): Long = position.toLong()
+  override fun getItemId(position: Int): Long = rounds[position].id.toLong()
+
+  override fun hasStableIds(): Boolean = true
 
   override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
     val blind = getItem(position)
+    val isDuplicateValue = rounds.count { it.small == blind.small } > 1
 
-    val rowView = if (convertView == null) {
-      LayoutInflater.from(context).inflate(R.layout.round_settings_row, parent, false).also { view ->
-        val smallBlindEditText = view.findViewById<EditText>(R.id.small_blind)
-        smallBlindEditText.setText(blind.small.toString())
-        smallBlindEditText.addTextChangedListener(BlindTextWatcher(position))
+    val rowView = convertView
+      ?: LayoutInflater.from(context).inflate(R.layout.round_settings_row, parent, false)
 
-        view.findViewById<ImageButton>(R.id.derease_button)
-          .setOnClickListener { changeBlind(position, -getIncreaseStep(blind.small)) }
-        view.findViewById<ImageButton>(R.id.inrease_button)
-          .setOnClickListener { changeBlind(position, +getIncreaseStep(blind.small)) }
-      }
-    } else {
-      convertView
-    }
+    // Row views can be recycled by the ListView for a different position/round, so every
+    // field and listener below must be rebound unconditionally - not just on first inflation -
+    // otherwise a recycled row keeps editing whichever round it was originally built for.
+    val smallBlindEditText = rowView.findViewById<EditText>(R.id.small_blind)
+    (smallBlindEditText.tag as? TextWatcher)?.let { smallBlindEditText.removeTextChangedListener(it) }
+    smallBlindEditText.setText(blind.small.toString())
+    smallBlindEditText.error = if (isDuplicateValue) context.getString(R.string.duplicate_blind_value) else null
+    val watcher = BlindTextWatcher(blind.id, blind.small)
+    smallBlindEditText.addTextChangedListener(watcher)
+    smallBlindEditText.tag = watcher
+
+    rowView.findViewById<ImageButton>(R.id.derease_button)
+      .setOnClickListener { changeBlind(blind.id, -getIncreaseStep(blind.small)) }
+    rowView.findViewById<ImageButton>(R.id.inrease_button)
+      .setOnClickListener { changeBlind(blind.id, +getIncreaseStep(blind.small)) }
 
     rowView.findViewById<TextView>(R.id.round_id).text =
       context.getString(R.string.round_id, formattedNumberOfCurrentRound(position))
@@ -56,9 +63,9 @@ class RoundSettingsListViewAdapter(
     return rowView
   }
 
-  private fun changeBlind(position: Int, delta: Int) {
-    val currentSmall = timerService.getRounds().getOrNull(position)?.small ?: return
-    timerService.updateBlind(position, maxOf(1, currentSmall + delta))
+  private fun changeBlind(id: Int, delta: Int) {
+    val currentSmall = timerService.getRounds().firstOrNull { it.id == id }?.small ?: return
+    timerService.updateBlind(id, maxOf(1, currentSmall + delta))
     refreshAdapter()
   }
 
@@ -80,9 +87,9 @@ class RoundSettingsListViewAdapter(
       RoundSettingsListViewAdapter(context, timerService)
   }
 
-  inner class BlindTextWatcher(private val position: Int) : TextWatcher {
+  inner class BlindTextWatcher(private val id: Int, initialSmall: Int) : TextWatcher {
 
-    private var previousText: String = timerService.getRounds().getOrNull(position)?.small?.toString() ?: "0"
+    private var previousText: String = initialSmall.toString()
 
     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
       if (s != null) previousText = s.toString()
@@ -92,8 +99,8 @@ class RoundSettingsListViewAdapter(
       if (s.isNullOrBlank()) return
       val newValue = s.toString().toIntOrNull()
       val fallback = previousText.toIntOrNull() ?: 0
-      Log.v("RoundSettingsListViewAdapter", "onTextChanged pos=$position value=$newValue")
-      timerService.updateBlind(position, newValue ?: fallback)
+      Log.v("RoundSettingsListViewAdapter", "onTextChanged id=$id value=$newValue")
+      timerService.updateBlind(id, newValue ?: fallback)
     }
 
     override fun afterTextChanged(s: Editable?) {
