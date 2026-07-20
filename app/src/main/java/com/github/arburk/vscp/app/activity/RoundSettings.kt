@@ -14,7 +14,7 @@ import com.github.arburk.vscp.app.databinding.FragmentRoundSettingsBinding
 import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.service.TimerService
 
-class RoundSettings() : Fragment() {
+class RoundSettings : Fragment() {
 
   private var _binding: FragmentRoundSettingsBinding? = null
   private val binding get() = _binding!!
@@ -28,39 +28,50 @@ class RoundSettings() : Fragment() {
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    if (timerService == null) {
-      timerService = (activity as MainActivity).timerService
+    super.onViewCreated(view, savedInstanceState)
+    val mainActivity = requireActivity() as MainActivity
+    val service = mainActivity.timerService
+    if (service != null) {
+      timerService = service
+      initLayout()
+    } else {
+      mainActivity.timerServiceLiveData.observe(viewLifecycleOwner) { svc ->
+        if (svc != null && timerService == null) {
+          timerService = svc
+          initLayout()
+        }
+      }
     }
-    initLayout()
   }
 
-
   private fun initLayout() {
-    requireActivity().findViewById<ListView?>(R.id.rounds_row_list_view).adapter =
-      RoundSettingsListViewAdapter(requireContext(), timerService!!.getRoundsAsPokerTimerModel())
+    val service = timerService ?: return
+    requireActivity().findViewById<ListView?>(R.id.rounds_row_list_view)?.adapter =
+      RoundSettingsListViewAdapter(requireContext(), service)
 
     requireActivity().findViewById<ImageButton>(R.id.add_blind_button)?.setOnClickListener { addBlind() }
     requireActivity().findViewById<ImageButton>(R.id.remove_last_blind_button)?.setOnClickListener { removeBlind() }
   }
 
   private fun addBlind() {
-    var newRound = Blind(1)
-    timerService!!.getRounds().also {
-      if (it.isNotEmpty()) {
-        val lastRound = it[it.size - 1]
-        newRound = Blind(lastRound.getBig())
-      }
-      timerService!!.setRounds(it.plus(newRound))
-    }
+    val service = timerService ?: return
+    val rounds = service.getRounds()
+    val newRound = if (rounds.isNotEmpty()) Blind(rounds.last().getBig()) else Blind(1)
+    service.setRounds(rounds + newRound)
     initLayout()
   }
 
   private fun removeBlind() {
-    timerService!!.getRounds().also {
-      if (it.isNotEmpty()) {
-        timerService!!.setRounds(it.dropLast(1).toTypedArray())
-        initLayout()
-      }
+    val service = timerService ?: return
+    val rounds = service.getRounds()
+    if (rounds.isNotEmpty()) {
+      service.setRounds(rounds.dropLast(1))
+      initLayout()
     }
+  }
+
+  override fun onDestroyView() {
+    super.onDestroyView()
+    _binding = null
   }
 }

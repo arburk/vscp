@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.github.arburk.vscp.app.MainActivity
 import com.github.arburk.vscp.app.R
@@ -30,14 +29,36 @@ class PokerTimer : Fragment() {
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
     _binding = TimerBinding.inflate(inflater, container, false)
-    timerService = (activity as MainActivity).timerService
-    launchPermissionActivity()
     return binding.root
   }
 
+  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    super.onViewCreated(view, savedInstanceState)
+    Log.v("PokerTimer", "onViewCreated")
+
+    val mainActivity = requireActivity() as MainActivity
+    val service = mainActivity.timerService
+    if (service != null) {
+      setupWithService(service)
+    } else {
+      mainActivity.timerServiceLiveData.observe(viewLifecycleOwner) { svc ->
+        if (svc != null && timerService == null) {
+          setupWithService(svc)
+        }
+      }
+    }
+  }
+
+  private fun setupWithService(service: TimerService) {
+    timerService = service
+    launchPermissionActivity()
+    service.registerViewModel(pokerTimerViewModel)
+    registerUiElements()
+  }
+
   private fun launchPermissionActivity() {
-    NotificationManagerWrapper().also {nmw ->
-      (this.requireActivity() as MainActivity).also { activity ->
+    NotificationManagerWrapper().also { nmw ->
+      (requireActivity() as MainActivity).also { activity ->
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && nmw.isLackOfNotificationPermission(activity)) {
           nmw.createNotificationChannel(activity)
           activity.permissionActivity.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -46,15 +67,8 @@ class PokerTimer : Fragment() {
     }
   }
 
-  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    Log.v("PokerTimer", "onViewCreated")
-    super.onViewCreated(view, savedInstanceState)
-    timerService?.registerViewModel(pokerTimerViewModel)
-    registerUiElements()
-  }
-
   private fun registerUiElements() {
-    if (timerService?.isRunning()!!) {
+    if (timerService?.isRunning() == true) {
       switchPlayPauseButtonsVisibility()
     }
 
@@ -71,21 +85,18 @@ class PokerTimer : Fragment() {
     binding.prevBlind.setOnClickListener { timerService?.jumpLevel(-1) }
     binding.nextBlind.setOnClickListener { timerService?.jumpLevel(1) }
 
-    pokerTimerViewModel.blind.observe(activity as MainActivity, blindObserver)
-    pokerTimerViewModel.remainingTime.observe(activity as MainActivity, remainingTimeObserver)
+    pokerTimerViewModel.blind.observe(viewLifecycleOwner) { newBlind: Blind ->
+      binding.smallBlind.text = newBlind.small.toString()
+      binding.bigBlind.text = newBlind.getBigAsString()
+    }
+    pokerTimerViewModel.remainingTime.observe(viewLifecycleOwner) { remainingTime: String ->
+      binding.timeLeft.text = remainingTime
+    }
 
     binding.fab.setOnClickListener { findNavController().navigate(R.id.action_Timer_to_TimerSettings) }
   }
 
-  private val blindObserver = Observer<Blind> { newBlind ->
-    binding.smallBlind.text = newBlind.small.toString()
-    binding.bigBlind.text = newBlind.getBigAsString()
-  }
-
-  private val remainingTimeObserver = Observer<String> { remainingtime -> binding.timeLeft.text = remainingtime }
-
   private fun switchPlayPauseButtonsVisibility() {
-    // Swap variables
     binding.playButton.visibility = binding.pauseButton.visibility.also {
       binding.pauseButton.visibility = binding.playButton.visibility
     }
@@ -94,9 +105,6 @@ class PokerTimer : Fragment() {
   override fun onDestroyView() {
     super.onDestroyView()
     _binding = null
-    pokerTimerViewModel.blind.removeObserver(blindObserver)
-    pokerTimerViewModel.remainingTime.removeObserver(remainingTimeObserver)
     timerService?.unregisterViewModel(pokerTimerViewModel)
   }
-
 }

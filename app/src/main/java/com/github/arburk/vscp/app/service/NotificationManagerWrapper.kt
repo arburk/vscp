@@ -25,7 +25,6 @@ class NotificationManagerWrapper {
     if (this::mockedManager.isInitialized) {
       return mockedManager
     }
-
     return ContextCompat.getSystemService(ctx, NotificationManager::class.java)
   }
 
@@ -33,7 +32,7 @@ class NotificationManagerWrapper {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return // Skip for lower versions
 
     ctx.getString(R.string.notification_channel_id).also {
-      if(notificationChannelMissing(ctx, it)) {
+      if (notificationChannelMissing(ctx, it)) {
         // After notification channel creation, you cannot change the notification behaviors programmatically.
         // The user has complete control at that point so it is useless to recreate it over and over again
         executeChannelCreation(ctx, it)
@@ -57,17 +56,14 @@ class NotificationManagerWrapper {
         // or other notification behaviors after this.
         get(ctx)!!.createNotificationChannel(it)
       }
-    Log.v("MainActivity", "$channelId created")
+    Log.v("NotificationManagerWrapper", "$channelId created")
   }
 
   @RequiresApi(Build.VERSION_CODES.O)
-  private fun notificationChannelMissing(ctx: Context, channelId: String): Boolean {
-    return get(ctx)!!.getNotificationChannel(channelId) == null
-  }
+  private fun notificationChannelMissing(ctx: Context, channelId: String): Boolean =
+    get(ctx)!!.getNotificationChannel(channelId) == null
 
   @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-  fun isLackOfNotificationPermission(ctx: Context) =
-    (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS)
-        != PackageManager.PERMISSION_GRANTED)
-
+  fun isLackOfNotificationPermission(ctx: Context): Boolean =
+    ActivityCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
 }
