@@ -30,5 +30,34 @@ class BlindTest {
     Assertions.assertEquals("6", Blind(3).getBigAsString())
     Assertions.assertEquals("200", Blind(100).getBigAsString())
   }
+
+  @Test
+  fun eachInstanceGetsAUniqueId() {
+    val first = Blind(5)
+    val second = Blind(5)
+
+    Assertions.assertNotEquals(first.id, second.id)
+  }
+
+  @Test
+  fun withSmallChangesValueButKeepsId() {
+    val original = Blind(5)
+
+    val updated = original.withSmall(10)
+
+    Assertions.assertEquals(10, updated.small)
+    Assertions.assertEquals(original.id, updated.id)
+  }
+
+  @Test
+  fun equalityAndHashCodeAreValueBasedNotIdBased() {
+    val first = Blind(5)
+    val second = Blind(5)
+
+    Assertions.assertNotEquals(first.id, second.id)
+    Assertions.assertEquals(first, second)
+    Assertions.assertEquals(first.hashCode(), second.hashCode())
+    Assertions.assertEquals("Blind(small=5)", first.toString())
+  }
 }
 

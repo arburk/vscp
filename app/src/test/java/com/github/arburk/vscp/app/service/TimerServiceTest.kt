@@ -2,6 +2,7 @@ package com.github.arburk.vscp.app.service
 
 
 import android.content.SharedPreferences
+import com.github.arburk.vscp.app.model.Blind
 import com.github.arburk.vscp.app.settings.pref_key_min_per_round
 import com.github.arburk.vscp.app.settings.pref_key_min_per_warning
 import org.awaitility.Awaitility.await
@@ -126,6 +127,36 @@ class TimerServiceTest {
     assertEquals(testee.config.rounds.size, testee.currentRound)
     testee.jumpLevel(1)
     assertEquals(testee.config.rounds.size, testee.currentRound)
+  }
+
+  @Test
+  fun updateBlindTargetsRoundByIdEvenWithDuplicateValues() {
+    given(mockSharedPreferences.getString(anyString(), anyString()))
+      .will { invocationOnMock -> invocationOnMock.arguments[1] }
+    testee.onCreate()
+
+    val first = Blind(50)
+    val second = Blind(50) // same small-blind value as `first`, but a distinct id
+    testee.config.rounds = listOf(first, second)
+
+    testee.updateBlind(second.id, 75)
+
+    assertEquals(first.id, testee.config.rounds[0].id)
+    assertEquals(50, testee.config.rounds[0].small, "the duplicate-valued round not targeted by id must stay untouched")
+    assertEquals(second.id, testee.config.rounds[1].id)
+    assertEquals(75, testee.config.rounds[1].small)
+  }
+
+  @Test
+  fun updateBlindWithUnknownIdIsNoOp() {
+    given(mockSharedPreferences.getString(anyString(), anyString()))
+      .will { invocationOnMock -> invocationOnMock.arguments[1] }
+    testee.onCreate()
+
+    val roundsBefore = testee.config.rounds
+    testee.updateBlind(-1, 999)
+
+    assertEquals(roundsBefore, testee.config.rounds)
   }
 
 }
