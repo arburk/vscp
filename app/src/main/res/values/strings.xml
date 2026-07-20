@@ -31,6 +31,7 @@
 
   <!-- round settings row -->
   <string name="round_id">Round %s</string>
+  <string name="duplicate_blind_value">Duplicate blind value</string>
   <string name="round_small_big_text">/</string>
   <string name="round_remove_last_blind_button_desc">button to remove last round definition</string>
   <string name="round_add_blind_button_desc">button_to_add_further_round_definition</string>

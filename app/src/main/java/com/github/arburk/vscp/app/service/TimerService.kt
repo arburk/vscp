@@ -235,10 +235,11 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     Blind(1000)
   )
 
-  fun updateBlind(index: Int, newSmallValue: Int) {
-    Log.v("TimerService", "updateBlind at index $index to $newSmallValue")
-    if (index < 0 || index >= config.rounds.size) return
-    config.rounds = config.rounds.toMutableList().also { it[index] = Blind(maxOf(1, newSmallValue)) }
+  fun updateBlind(id: Int, newSmallValue: Int) {
+    Log.v("TimerService", "updateBlind for round id $id to $newSmallValue")
+    val index = config.rounds.indexOfFirst { it.id == id }
+    if (index < 0) return
+    config.rounds = config.rounds.toMutableList().also { it[index] = it[index].withSmall(maxOf(1, newSmallValue)) }
     updateViewModels()
   }
 

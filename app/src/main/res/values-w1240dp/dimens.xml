@@ -1,3 +1,10 @@
 <resources>
   <dimen name="fab_margin">200dp</dimen>
+
+  <!-- round settings row -->
+  <dimen name="round_row_text_size">24sp</dimen>
+  <dimen name="round_row_icon_size">44dp</dimen>
+  <dimen name="round_row_icon_margin">24dp</dimen>
+  <dimen name="round_row_min_height">64dp</dimen>
+  <dimen name="round_row_vertical_padding">12dp</dimen>
 </resources>
