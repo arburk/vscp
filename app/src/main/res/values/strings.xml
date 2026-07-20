@@ -41,5 +41,8 @@
 
   <string name="channel_name">TimerNotifications</string>
   <string name="channel_description">notify the user when level changes</string>
+  <string name="foreground_channel_name">TimerService</string>
+  <string name="foreground_channel_description">silent notification keeping the timer running in background</string>
+  <string name="foreground_notification_text">Timer is running</string>
 
 </resources>

@@ -3,4 +3,5 @@
   <string name="package_name">com.github.arburk.vscp.app</string>
   <string name="vscp_url">http://vscp.ch</string>
   <string name="notification_channel_id">NOTIFY_CHANNEL_TS_ID</string>
+  <string name="foreground_notification_channel_id">NOTIFY_CHANNEL_FOREGROUND_ID</string>
 </resources>

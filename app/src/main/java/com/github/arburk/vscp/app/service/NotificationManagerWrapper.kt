@@ -59,6 +59,33 @@ class NotificationManagerWrapper {
     Log.v("NotificationManagerWrapper", "$channelId created")
   }
 
+  fun createForegroundServiceChannel(ctx: Context) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return // Skip for lower versions
+
+    ctx.getString(R.string.foreground_notification_channel_id).also {
+      if (notificationChannelMissing(ctx, it)) {
+        executeForegroundChannelCreation(ctx, it)
+      }
+    }
+  }
+
+  @RequiresApi(Build.VERSION_CODES.O)
+  private fun executeForegroundChannelCreation(ctx: Context, channelId: String) {
+    // Deliberately silent/low-importance: this channel only backs the persistent
+    // "timer is running" notification required to keep the service alive in the
+    // foreground. The audible level-change alert uses the separate high-importance
+    // channel above.
+    NotificationChannel(channelId, ctx.getString(R.string.foreground_channel_name), NotificationManager.IMPORTANCE_LOW)
+      .apply {
+        description = ctx.getString(R.string.foreground_channel_description)
+        setSound(null, null)
+        enableVibration(false)
+      }.also {
+        get(ctx)!!.createNotificationChannel(it)
+      }
+    Log.v("NotificationManagerWrapper", "$channelId created")
+  }
+
   @RequiresApi(Build.VERSION_CODES.O)
   private fun notificationChannelMissing(ctx: Context, channelId: String): Boolean =
     get(ctx)!!.getNotificationChannel(channelId) == null

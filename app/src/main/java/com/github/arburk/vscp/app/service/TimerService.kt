@@ -8,8 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.media.RingtoneManager
-import android.net.Uri
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Binder
 import android.os.Build
 import android.os.Handler
@@ -33,6 +33,10 @@ import kotlin.concurrent.timerTask
 
 class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListener {
 
+  companion object {
+    private const val FOREGROUND_NOTIFICATION_ID = 1
+  }
+
   @VisibleForTesting
   internal lateinit var config: ConfigModel
 
@@ -53,6 +57,10 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
   private var timerTask: TimerTask? = null
   private val mainHandler = Handler(Looper.getMainLooper())
 
+  private lateinit var soundPool: SoundPool
+  private var fightCountdownSoundId = 0
+  private var oneMinuteWarningSoundId = 0
+
   inner class TimerServiceBinder : Binder() {
     fun getService(): TimerService = this@TimerService
   }
@@ -61,11 +69,32 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
 
   override fun onCreate() {
     initConfig()
+    preloadSounds()
+    NotificationManagerWrapper().createForegroundServiceChannel(this)
   }
 
   override fun onDestroy() {
     super.onDestroy()
     timer.cancel()
+    stopForeground(Service.STOP_FOREGROUND_REMOVE)
+    if (this::soundPool.isInitialized) soundPool.release()
+  }
+
+  private fun preloadSounds() {
+    // Kept as separate statements on retained builder references (no method chaining):
+    // the Android unit-test stubs return null from chained builder calls, which would
+    // NPE here even though the same chain works fine on a real device.
+    val audioAttributesBuilder = AudioAttributes.Builder()
+    audioAttributesBuilder.setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
+    audioAttributesBuilder.setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+
+    val soundPoolBuilder = SoundPool.Builder()
+    soundPoolBuilder.setMaxStreams(2)
+    soundPoolBuilder.setAudioAttributes(audioAttributesBuilder.build())
+
+    soundPool = soundPoolBuilder.build() ?: return
+    fightCountdownSoundId = soundPool.load(this, R.raw.countdown_fight, 1)
+    oneMinuteWarningSoundId = soundPool.load(this, R.raw.one_minute_warning, 1)
   }
 
   private fun initConfig() {
@@ -103,10 +132,24 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     Log.v("TimerService", "start timer was requested")
     if (!running) {
       running = true
+      // Background execution limits/Doze (the actual cause of unreliable playback) only
+      // apply from Android 8 (O) onward, so foreground promotion is only needed there.
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification())
+      }
       timerTask = createTimerTask()
       timer.scheduleAtFixedRate(timerTask, 1000, 1000)
     }
   }
+
+  private fun buildForegroundNotification(): Notification =
+    NotificationCompat.Builder(this, getString(R.string.foreground_notification_channel_id))
+      .setContentTitle(getString(R.string.app_name))
+      .setContentText(getString(R.string.foreground_notification_text))
+      .setSmallIcon(R.mipmap.icon_webp)
+      .setPriority(NotificationCompat.PRIORITY_LOW)
+      .setOngoing(true)
+      .build()
 
   private fun createTimerTask() = timerTask {
     when (remainingSeconds) {
@@ -120,23 +163,17 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
           processNextRoundNotification()
         }
       }
-      6 -> mainHandler.post {
-        RingtoneManager.getRingtone(this@TimerService, getFightCountdownUri()).play()
+      4 -> mainHandler.post {
+        soundPool.play(fightCountdownSoundId, 1f, 1f, 1, 0, 1f)
       }
-      62 -> mainHandler.post {
-        RingtoneManager.getRingtone(this@TimerService, getOneMinuteWarningUri()).play()
+      config.minPerWarning * 60 + 1 -> mainHandler.post {
+        soundPool.play(oneMinuteWarningSoundId, 1f, 1f, 1, 0, 1f)
       }
     }
     remainingSeconds--
     updateViewModels()
     Log.v("TimerService", "remainingSeconds: $remainingSeconds")
   }
-
-  private fun getOneMinuteWarningUri(): Uri =
-    Uri.parse("android.resource://" + applicationContext.packageName + "/" + R.raw.one_minute_warning)
-
-  private fun getFightCountdownUri(): Uri =
-    Uri.parse("android.resource://" + applicationContext.packageName + "/" + R.raw.countdown_fight)
 
   private fun processNextRoundNotification() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -175,6 +212,7 @@ class TimerService : Service(), SharedPreferences.OnSharedPreferenceChangeListen
     if (running) {
       running = false
       timerTask?.cancel()
+      stopForeground(Service.STOP_FOREGROUND_REMOVE)
     }
   }
 
