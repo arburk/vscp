@@ -7,4 +7,11 @@
   <dimen name="table_row_poker_timer_play_pause_padding_top">10dp</dimen>
   <dimen name="tv_big_blind_padding_top">30dp</dimen>
   <dimen name="list_view_rounds_height">450dp</dimen>
+
+  <!-- round settings row -->
+  <dimen name="round_row_text_size">18sp</dimen>
+  <dimen name="round_row_icon_size">32dp</dimen>
+  <dimen name="round_row_icon_margin">12dp</dimen>
+  <dimen name="round_row_min_height">48dp</dimen>
+  <dimen name="round_row_vertical_padding">6dp</dimen>
 </resources>
