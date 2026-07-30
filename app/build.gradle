@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-  namespace 'com.github.arburk.vscp.app'
+  namespace = 'com.github.arburk.vscp.app'
   compileSdk 37
 
   defaultConfig {
@@ -30,8 +30,8 @@ android {
     }
     debug {
       debuggable true
-      enableUnitTestCoverage true
-      enableAndroidTestCoverage true
+      enableUnitTestCoverage = true
+      enableAndroidTestCoverage = true
     }
   }
 
@@ -41,7 +41,7 @@ android {
   }
 
   buildFeatures {
-    viewBinding true
+    viewBinding = true
   }
 
   testOptions {
@@ -163,6 +163,12 @@ sonar {
     property "sonar.projectKey", "arburk_vscp"
     property "sonar.organization", "arburk"
     property "sonar.host.url", "https://sonarcloud.io"
+    // The report comes from the custom jacocoTestReport task below, not from the
+    // default location the Sonar plugin would guess, so point at it explicitly.
+    property "sonar.coverage.jacoco.xmlReportPaths",
+        layout.buildDirectory.file("reports/jacoco/jacocoTestReport/jacocoTestReport.xml").get().asFile
+    property "sonar.junit.reportPaths",
+        layout.buildDirectory.dir("test-results/testDebugUnitTest").get().asFile
   }
 }
 
@@ -191,8 +197,15 @@ tasks.register('jacocoTestReport', JacocoReport) {
   executionData.setFrom(fileTree(dir: "$projectDir/build", includes: [
       "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
       "outputs/managed_device_code_coverage/**/coverage.ec",
-     // "outputs/code_coverage/debugAndroidTest/connected/**/coverage.ec",
+      // connectedCheck against a real device or the emulator-runner in CI
+      "outputs/code_coverage/debugAndroidTest/connected/**/coverage.ec",
   ]))
+}
+
+// The CI job lists both tasks on one command line, which does not by itself
+// guarantee the report exists before the scanner reads it.
+tasks.named('sonar') {
+  dependsOn(tasks.named('jacocoTestReport'))
 }
 
 dependencies {
