@@ -35,15 +35,14 @@ class MainActivityInstrumentedTest {
   }
 
   class MockedActivityResultLauncher : ActivityResultLauncher<String> () {
-    override fun launch(p0: String?, p1: ActivityOptionsCompat?) { // do nothing
+    override fun launch(input: String, options: ActivityOptionsCompat?) { // do nothing
     }
 
     override fun unregister() { // do nothing
     }
 
-    override fun getContract(): ActivityResultContract<String, *> {
-      throw NotImplementedError("mock only")
-    }
+    override val contract: ActivityResultContract<String, *>
+      get() = throw NotImplementedError("mock only")
 
   }
 
