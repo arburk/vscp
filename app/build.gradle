@@ -12,7 +12,7 @@ android {
   defaultConfig {
     applicationId "com.github.arburk.vscp.app"
     minSdk 25
-    targetSdk 33
+    targetSdk 35
     versionCode 1
     versionName "1.0"
 
@@ -71,10 +71,26 @@ android {
           apiLevel = 28
           systemImageSource = "aosp"
         }
+        pixel3api29 {
+          device = "Pixel 3"
+          apiLevel = 29
+          // No ATD image exists for API 29, so the plain AOSP one is used
+          systemImageSource = "aosp"
+        }
         pixel3api30 {
           device = "Pixel 3"
           apiLevel = 30
           // Also use the AOSP Automated Test Device image for better emulator performance
+          systemImageSource = "aosp-atd"
+        }
+        pixel4api31 {
+          device = "Pixel 4"
+          apiLevel = 31
+          systemImageSource = "aosp-atd"
+        }
+        pixel4api32 {
+          device = "Pixel 4"
+          apiLevel = 32
           systemImageSource = "aosp-atd"
         }
         pixel6api33 {
@@ -83,13 +99,44 @@ android {
           // Also use the AOSP Automated Test Device image for better emulator performance
           systemImageSource = "aosp-atd"
         }
+        pixel6api34 {
+          device = "Pixel 6"
+          apiLevel = 34
+          systemImageSource = "aosp-atd"
+        }
+        pixel6api35 {
+          device = "Pixel 6"
+          apiLevel = 35
+          systemImageSource = "aosp-atd"
+        }
+        pixel6api36 {
+          device = "Pixel 6"
+          apiLevel = 36
+          systemImageSource = "aosp-atd"
+        }
+        pixel6api37 {
+          device = "Pixel 6"
+          apiLevel = 37
+          // API 37 ships no AOSP/ATD image, only the Google APIs one
+          systemImageSource = "google"
+          // AGP cannot derive the page size for API 37 yet and warns on every build.
+          // The app has no native code, so the 4 kb image it would pick anyway is fine.
+          pageAlignment = com.android.build.api.dsl.ManagedVirtualDevice.PageAlignment.FORCE_4KB_PAGES
+        }
       }
       groups {
         supportedSdks {
           //targetDevices.add(localDevices.nexus5api27)
-          targetDevices.add(localDevices.nexus5api28)
+          //targetDevices.add(localDevices.nexus5api28)
+          //targetDevices.add(localDevices.pixel3api29)
           //targetDevices.add(localDevices.pixel3api30)
+          //targetDevices.add(localDevices.pixel4api31)
+          //targetDevices.add(localDevices.pixel4api32)
           //targetDevices.add(localDevices.pixel6api33)
+          //targetDevices.add(localDevices.pixel6api34)
+          targetDevices.add(localDevices.pixel6api35)
+          //targetDevices.add(localDevices.pixel6api36)
+          //targetDevices.add(localDevices.pixel6api37)
         }
       }
     }

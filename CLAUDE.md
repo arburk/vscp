@@ -6,9 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 VSCP PokerTimer is a native Android app (Kotlin) for managing a poker sit'n'go tournament — it tracks blind levels and plays audio cues at configurable intervals. The project serves as a learning vehicle for native Android development.
 
-- **minSdk 25** (Android 7.1 Nougat) — **targetSdk 33** (Android 13 Tiramisu) — **compileSdk 37**
+- **minSdk 25** (Android 7.1 Nougat) — **targetSdk 35** (Android 15 VanillaIceCream) — **compileSdk 37**
   (compileSdk is dictated by the AndroidX dependencies: `androidx.core:core-ktx:1.19.0` requires 37)
-- Supported managed-device test targets: API 27, 28, 30, 33 (only 28 currently active in CI)
+- Because targetSdk ≥ 34, `TimerService` must declare `android:foregroundServiceType="specialUse"`
+  plus the `FOREGROUND_SERVICE_SPECIAL_USE` permission — without it `startForeground()` throws at
+  runtime and lint fails the build.
+- Managed-device test targets are defined for API 27–37 (only 28 is active in the `supportedSdks`
+  group). API 29 has no ATD image (`aosp`), API 37 has neither AOSP nor ATD (`google`).
 
 ## Common commands
 

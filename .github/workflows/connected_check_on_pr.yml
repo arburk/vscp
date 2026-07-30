@@ -16,7 +16,7 @@ jobs:
       # Allow tests to continue on other devices if they fail on one device.
       fail-fast: false
       matrix:
-        api-level: [ 27, 28, 29, 30, 31, 32, 33, 34 ]
+        api-level: [ 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37 ]
     env:
       JAVA_TOOL_OPTIONS: -Xmx4g
 
@@ -60,11 +60,12 @@ jobs:
         id: determine-target
         run: |
           TARGET="google_apis"
-          if [[ ${{ matrix.api-level }} -ge 30 ]]; then
+          if [[ ${{ matrix.api-level }} -ge 30 && ${{ matrix.api-level }} -le 36 ]]; then
             TARGET="aosp_atd"
           elif [[ ${{ matrix.api-level }} -le 27 ]]; then
             TARGET="default"
           fi
+          # API 37 has no aosp/atd image at all, so it stays on google_apis
           echo "TARGET=$TARGET" >> "$GITHUB_OUTPUT"
 
 ## Disable cache since it breaks the tests

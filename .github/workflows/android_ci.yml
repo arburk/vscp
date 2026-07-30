@@ -50,12 +50,12 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Perform instrumented API Level 33 Test
+      - name: Perform instrumented API Level 35 Test
         uses: reactivecircus/android-emulator-runner@v2
         id: perform-it
         continue-on-error: true
         with:  # run ``sdkmanager --list`` to see available images
-          api-level: 33
+          api-level: 35
           target: aosp_atd
           arch: x86_64
           channel: canary
