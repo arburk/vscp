@@ -6,8 +6,6 @@ jobs:
   build:
     runs-on: ubuntu-latest # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md
     timeout-minutes: 60
-    env:
-      JAVA_TOOL_OPTIONS: -Xmx4g
 
     steps:
       - name: checkout source
@@ -53,14 +51,13 @@ jobs:
       - name: Perform instrumented API Level 35 Test
         uses: reactivecircus/android-emulator-runner@v2
         id: perform-it
-        continue-on-error: true
         with:  # run ``sdkmanager --list`` to see available images
           api-level: 35
           target: aosp_atd
           arch: x86_64
           channel: canary
           emulator-boot-timeout: 300
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -logcat-output ${{ github.workspace }}/app/build/reports/avd33.log
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -logcat-output ${{ github.workspace }}/app/build/reports/avd35.log
           disable-animations: true
           script: ./gradlew connectedCheck
 
