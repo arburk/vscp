@@ -47,6 +47,9 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       # Instrumented tests are covered by connected_check_on_pr.yml on main; a tag always
       # points at an already tested commit, so the release skips the ~30 min emulator run.
       - name: Quality gate
