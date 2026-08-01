@@ -12,11 +12,29 @@ jobs:
   build:
     runs-on: ubuntu-latest # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2204-Readme.md
     timeout-minutes: 60
+    # API 37 only has preview-grade images, so it must not block the PR.
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       # Allow tests to continue on other devices if they fail on one device.
       fail-fast: false
       matrix:
-        api-level: [ 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37 ]
+        # api-level doubles as the SDK package suffix: 'platforms;android-<api-level>' and
+        # 'system-images;android-<api-level>;<target>;x86_64'. Run `sdkmanager --list` to
+        # see what exists before adding a row.
+        include:
+          - { api-level: '27',   target: default,     experimental: false }
+          - { api-level: '28',   target: google_apis, experimental: false }
+          - { api-level: '29',   target: google_apis, experimental: false }
+          - { api-level: '30',   target: aosp_atd,    experimental: false }
+          - { api-level: '31',   target: aosp_atd,    experimental: false }
+          - { api-level: '32',   target: aosp_atd,    experimental: false }
+          - { api-level: '33',   target: aosp_atd,    experimental: false }
+          - { api-level: '34',   target: aosp_atd,    experimental: false }
+          - { api-level: '35',   target: aosp_atd,    experimental: false }
+          - { api-level: '36',   target: aosp_atd,    experimental: false }
+          # API 37 is published minor-versioned only (platforms;android-37.0,
+          # system-images;android-37.0;google_apis) and has no aosp/atd image.
+          - { api-level: '37.0', target: google_apis, experimental: true }
 
     steps:
       - name: checkout source
@@ -54,18 +72,6 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Determine emulator target
-        id: determine-target
-        run: |
-          TARGET="google_apis"
-          if [[ ${{ matrix.api-level }} -ge 30 && ${{ matrix.api-level }} -le 36 ]]; then
-            TARGET="aosp_atd"
-          elif [[ ${{ matrix.api-level }} -le 27 ]]; then
-            TARGET="default"
-          fi
-          # API 37 has no aosp/atd image at all, so it stays on google_apis
-          echo "TARGET=$TARGET" >> "$GITHUB_OUTPUT"
-
 ## Disable cache since it breaks the tests
 #      - name: AVD cache
 #        if: steps.check_pr.outputs.PERFORM_TEST != 0
@@ -81,7 +87,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
-          target: ${{ steps.determine-target.outputs.TARGET }}
+          target: ${{ matrix.target }}
           arch: x86_64
           channel: canary
           force-avd-creation: false
@@ -94,7 +100,7 @@ jobs:
         uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: test-results-${{ matrix.api-level }}-${{ steps.determine-target.outputs.TARGET }}
+          name: test-results-${{ matrix.api-level }}-${{ matrix.target }}
           path: |
             **/build/reports/*
             **/build/outputs/*/connected/*

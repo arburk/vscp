@@ -11,8 +11,12 @@ VSCP PokerTimer is a native Android app (Kotlin) for managing a poker sit'n'go t
 - Because targetSdk ≥ 34, `TimerService` must declare `android:foregroundServiceType="specialUse"`
   plus the `FOREGROUND_SERVICE_SPECIAL_USE` permission — without it `startForeground()` throws at
   runtime and lint fails the build.
-- Managed-device test targets are defined for API 27–37 (only 28 is active in the `supportedSdks`
-  group). API 29 has no ATD image (`aosp`), API 37 has neither AOSP nor ATD (`google`).
+- Managed-device test targets are defined for API 27–37; the `supportedSdks` group runs 27–36.
+  API 29 has no ATD image (`aosp`), API 37 has neither AOSP nor ATD (`google`).
+- API 37 SDK packages are published **minor-versioned only**: `platforms;android-37.0`,
+  `system-images;android-37.0;google_apis;x86_64` — `platforms;android-37` does not exist.
+  `ManagedVirtualDevice` has no minor-version field, so `pixel6api37` cannot resolve its image and
+  stays out of the group; API 37 is covered by the CI matrix (`api-level: '37.0'`, non-blocking).
 
 ## Common commands
 
@@ -90,7 +94,8 @@ Preference key constants are defined at top-level in `AppSettingsActivity.kt` an
 ### Testing approach
 
 - **Unit tests**: JUnit 5 (Jupiter) + Mockito. `TimerService` exposes `@VisibleForTesting internal` fields (`sharedPreferences`, `config`, `currentRound`) so tests inject a `MockSharedPreferences` directly and call `onCreate()` manually without an Android runtime.
-- **Instrumented tests**: JUnit 5 via `de.mannodermaus.junit5` plugin + Espresso. Requires `DexOpener` (`com.github.tmurakami:dexopener`) to open final classes for Mockito on Android. With `junit-jupiter 6.x` the instrumentation artifacts must be the `-junit6` variants (`android-test-core-junit6`, `android-test-runner-junit6`); mixing them with the plain ones fails `checkDebugAndroidTestDuplicateClasses`.
+- **Instrumented tests**: JUnit 5 via `de.mannodermaus.junit5` plugin + Espresso. Requires `DexOpener` (`com.github.tmurakami:dexopener`) to open final classes for Mockito on Android.
+- **Two Jupiter versions on purpose**: unit tests use `junitJupiterVersion` (6.x), androidTest uses `junitJupiterAndroidVersion` (5.x). `android-test-runner-junit6` checks `Build.VERSION.SDK_INT >= 35` and fails every test below that with `JUnitException: JUnit Framework is not supported on this device` (JUnit 6 = Java 17 = Android 15). The plain JUnit 5 runner works from API 26. Do **not** declare `android-test-core`/`android-test-runner` manually — the plugin adds the variant matching the Jupiter version on the androidTest classpath, and a manual mismatch fails `checkDebugAndroidTestDuplicateClasses`.
 - Parallel test execution is enabled via `junit.jupiter.execution.parallel.enabled=true`.
 
 ### Build / dependency notes
