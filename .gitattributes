@@ -1,0 +1,19 @@
+# Keep line endings stable across Windows/Linux checkouts and CI.
+# Without this an IDE-side reformat can rewrite every file to CRLF.
+* text=auto eol=lf
+
+# Windows-only scripts stay CRLF, shell scripts must stay LF (CI runs them on Linux).
+*.bat text eol=crlf
+*.cmd text eol=crlf
+gradlew text eol=lf
+*.sh text eol=lf
+
+# Binary assets - never touch.
+*.jar binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.ttf binary
+*.mp3 binary
+*.ogg binary
+*.wav binary

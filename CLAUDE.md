@@ -6,8 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 VSCP PokerTimer is a native Android app (Kotlin) for managing a poker sit'n'go tournament — it tracks blind levels and plays audio cues at configurable intervals. The project serves as a learning vehicle for native Android development.
 
-- **minSdk 25** (Android 7.1 Nougat) — **targetSdk / compileSdk 33** (Android 13 Tiramisu)
-- Supported managed-device test targets: API 27, 28, 30, 33 (only 28 currently active in CI)
+- **minSdk 25** (Android 7.1 Nougat) — **targetSdk 35** (Android 15 VanillaIceCream) — **compileSdk 37**
+  (compileSdk is dictated by the AndroidX dependencies: `androidx.core:core-ktx:1.19.0` requires 37)
+- Because targetSdk ≥ 34, `TimerService` must declare `android:foregroundServiceType="specialUse"`
+  plus the `FOREGROUND_SERVICE_SPECIAL_USE` permission — without it `startForeground()` throws at
+  runtime and lint fails the build.
+- Managed-device test targets are defined for API 27–37; the `supportedSdks` group runs 27–36.
+  API 29 has no ATD image (`aosp`), API 37 has neither AOSP nor ATD (`google`).
+- API 37 SDK packages are published **minor-versioned only**: `platforms;android-37.0`,
+  `system-images;android-37.0;google_apis;x86_64` — `platforms;android-37` does not exist.
+  `ManagedVirtualDevice` has no minor-version field, so `pixel6api37` cannot resolve its image and
+  stays out of the group; API 37 is covered by the CI matrix (`api-level: '37.0'`, non-blocking).
 
 ## Common commands
 
@@ -86,11 +95,13 @@ Preference key constants are defined at top-level in `AppSettingsActivity.kt` an
 
 - **Unit tests**: JUnit 5 (Jupiter) + Mockito. `TimerService` exposes `@VisibleForTesting internal` fields (`sharedPreferences`, `config`, `currentRound`) so tests inject a `MockSharedPreferences` directly and call `onCreate()` manually without an Android runtime.
 - **Instrumented tests**: JUnit 5 via `de.mannodermaus.junit5` plugin + Espresso. Requires `DexOpener` (`com.github.tmurakami:dexopener`) to open final classes for Mockito on Android.
+- **Two Jupiter versions on purpose**: unit tests use `junitJupiterVersion` (6.x), androidTest uses `junitJupiterAndroidVersion` (5.x). `android-test-runner-junit6` checks `Build.VERSION.SDK_INT >= 35` and fails every test below that with `JUnitException: JUnit Framework is not supported on this device` (JUnit 6 = Java 17 = Android 15). The plain JUnit 5 runner works from API 26. Do **not** declare `android-test-core`/`android-test-runner` manually — the plugin adds the variant matching the Jupiter version on the androidTest classpath, and a manual mismatch fails `checkDebugAndroidTestDuplicateClasses`.
 - Parallel test execution is enabled via `junit.jupiter.execution.parallel.enabled=true`.
 
 ### Build / dependency notes
 
-- AGP `8.13.2`, Kotlin `1.9.22`, JVM target `1.8`
-- JaCoCo `0.8.11` — coverage report task is `jacocoTestReport` (not the default Gradle one)
+- AGP `9.1.1` on Gradle `9.6.1`, JVM target `17`
+- Kotlin comes from AGP's **built-in Kotlin support** (`2.2.10`) — there is no `org.jetbrains.kotlin.android` plugin in the build files. Setting `android.builtInKotlin=false` without adding that plugin back produces an APK with no app classes in it and still reports `BUILD SUCCESSFUL`.
+- JaCoCo `0.8.15` — coverage report task is `jacocoTestReport` (not the default Gradle one). Its `classDirectories` are read from the compile tasks' `destinationDirectory`, because AGP 9 moved the intermediate class dirs (`intermediates/built_in_kotlinc/...`, `intermediates/javac/<variant>/<task>/classes`).
 - SonarCloud project: `arburk_vscp` / org `arburk`
 - `dexopener` is pulled from JitPack (`https://jitpack.io`)

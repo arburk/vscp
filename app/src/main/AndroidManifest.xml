@@ -3,6 +3,8 @@
           xmlns:tools="http://schemas.android.com/tools">
 
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+  <!-- Required from API 34 on for the foregroundServiceType declared on TimerService below -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
   <application
@@ -19,7 +21,11 @@
     <service
         android:name=".service.TimerService"
         android:enabled="true"
-        android:exported="false">
+        android:exported="false"
+        android:foregroundServiceType="specialUse">
+      <property
+          android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+          android:value="Keeps the tournament blind timer ticking and plays the level change cues while the app is in the background"/>
     </service>
 
     <activity
